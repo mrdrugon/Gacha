@@ -8,7 +8,7 @@ public class Battle {
     private List<Card> opponentBattleDeck;
     private int opponentIndex;
     private String lastRoundResult;
-    private Card selectedPlayerCard;
+    public Card selectedPlayerCard;
 
     public Battle(List<Card> playerDeck, List<Card> opponentDeck) {
         this.playerDeck = playerDeck;
@@ -39,16 +39,11 @@ public class Battle {
     }
 
     public boolean playNextRound(Card selectedCard) {
-        if (!playerSelectedCard(selectedCard)){
-            lastRoundResult = "Invalid selection!";
-            return false;
-        }
-
         while (opponentIndex < opponentBattleDeck.size() && opponentBattleDeck.get(opponentIndex).getHealth() <= 0) {
             opponentIndex++;
         }
 
-        if (opponentIndex >= opponentBattleDeck.size()){
+        if (opponentIndex >= opponentBattleDeck.size()) {
             return true;
         }
 
@@ -70,25 +65,21 @@ public class Battle {
             lastRoundResult += "Opponent's " + opponentCard.getName() + " attacks again!\n";
         }
 
-        if (selectedPlayerCard.getHealth() <= 0 && opponentCard.getHealth() <= 0) {
-            boolean playerRevived = reviveCard(selectedPlayerCard);
-            boolean opponentRevived = reviveCard(opponentCard);
+        boolean playerRevived = selectedPlayerCard.getHealth() <= 0 && reviveCard(selectedPlayerCard);
+        boolean opponentRevived = opponentCard.getHealth() <= 0 && reviveCard(opponentCard);
 
-            if (!playerRevived && !opponentRevived) {
+        if (!playerRevived && !opponentRevived) {
+            if (selectedPlayerCard.getHealth() <= 0 && opponentCard.getHealth() <= 0) {
                 lastRoundResult += "It's a tie! Both cards are eliminated.\n";
                 opponentIndex++;
-            }
-        } else if (selectedPlayerCard.getHealth() <=0) {
-            if (!reviveCard(selectedPlayerCard)) {
+            } else if (selectedPlayerCard.getHealth() <= 0) {
                 lastRoundResult += "Opponent's " + opponentCard.getName() + " wins the round!\n";
-            }
-        } else if (opponentCard.getHealth() <= 0) {
-            if (!reviveCard(opponentCard)){
-                lastRoundResult += "Player's " +selectedPlayerCard.getName()+ " wins the round!\n";
+            } else if (opponentCard.getHealth() <= 0) {
+                lastRoundResult += "Player's " + selectedPlayerCard.getName() + " wins the round!\n";
                 opponentIndex++;
+            } else {
+                lastRoundResult += "Both cards survived the round!\n";
             }
-        } else {
-            lastRoundResult += "Both cards survived the round!\n";
         }
         return opponentIndex >= opponentBattleDeck.size();
     }
