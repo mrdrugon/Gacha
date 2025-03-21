@@ -1,12 +1,14 @@
 public class Card {
     private String name;
     private int attack;
+    private static int counter = 1;
     private int health;
     private int originalHealth;
     private String rarity;
     private boolean hasDoubleAttack;
     private boolean revive;
     private boolean revived;
+    private int id;
 
     public Card(String name, int attack, int health, String rarity, boolean hasDoubleAttack, boolean revive){
         this.name = name;
@@ -14,6 +16,7 @@ public class Card {
         this.health = health;
         this.originalHealth = health;
         this.rarity = rarity;
+        this.id = counter++;
         this.hasDoubleAttack = hasDoubleAttack;
         this.revive = revive;
         this.revived = false;
@@ -29,6 +32,10 @@ public class Card {
 
     public int getHealth() {
         return health;
+    }
+    public int getId()
+    {
+        return id;
     }
 
     public String getRarity() {
