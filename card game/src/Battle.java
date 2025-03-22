@@ -1,11 +1,13 @@
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Battle {
     private List<Card> playerDeck;
     private List<Card> opponentDeck;
-    private List<Card> playerBattleDeck;
-    private List<Card> opponentBattleDeck;
+    private Map<Integer, Card> playerCardsMap;
+    private Map<Integer, Card> opponentCardsMap;
+
     private int opponentIndex;
     private String lastRoundResult;
     public Card selectedPlayerCard;
@@ -13,55 +15,55 @@ public class Battle {
     public Battle(List<Card> playerDeck, List<Card> opponentDeck) {
         this.playerDeck = playerDeck;
         this.opponentDeck = opponentDeck;
-        this.playerBattleDeck = cloneDeck(playerDeck); // Create fresh copies
-        this.opponentBattleDeck = cloneDeck(opponentDeck);
+        this.playerCardsMap = new HashMap<>();
+        this.opponentCardsMap = new HashMap<>();
         this.opponentIndex = 0;
         this.lastRoundResult = "";
 
-    }
-
-    private List<Card> cloneDeck(List<Card> originalDeck) {
-        List<Card> newDeck = new ArrayList<>();
-        for (Card card : originalDeck) {
-            newDeck.add(new Card(card.getName(), card.getAttack(), card.getOriginalHealth(), card.getRarity(), card.hasDoubleAttack(), card.hasRevive()));
+        for (Card card : playerDeck){
+            playerCardsMap.put(card.getId(), card);
         }
-        return newDeck;
+
+        for (Card card : opponentDeck){
+            opponentCardsMap.put(card.getId(), card);
+        }
+
     }
 
-    public boolean playerSelectedCard(Card card){
-        for (Card battleCard : playerBattleDeck){
-            if (battleCard.getName().equals(card.getName()) && battleCard.getHealth() > 0){
-                selectedPlayerCard = battleCard;
+    public boolean playerSelectedCard(Card selectedCard){
+        Card cardToSelect = playerCardsMap.get(selectedCard.getId());
+            if (cardToSelect != null && cardToSelect.getHealth() > 0){
+                selectedPlayerCard = cardToSelect;
                 return true;
             }
-        }
         return false;
     }
 
     public boolean playNextRound(Card selectedCard) {
-        while (opponentIndex < opponentBattleDeck.size() && opponentBattleDeck.get(opponentIndex).getHealth() <= 0) {
+        while (opponentIndex < opponentDeck.size() && opponentDeck.get(opponentIndex).getHealth() <= 0) {
             opponentIndex++;
         }
 
-        if (opponentIndex >= opponentBattleDeck.size()) {
+        if (opponentIndex >= opponentDeck.size()) {
             return true;
         }
 
-        Card opponentCard = opponentBattleDeck.get(opponentIndex);
+        Card opponentCard = getNextOpponentCard();
+        if (opponentCard == null) return true;
 
         lastRoundResult = "Player's " + selectedPlayerCard.getName() + " (ATK: " + selectedPlayerCard.getAttack() + ", HP: " + selectedPlayerCard.getHealth() + ") VS "
                 + "Opponent's " + opponentCard.getName() + " (ATK: " + opponentCard.getAttack() + ", HP: " + opponentCard.getHealth() + ")\n";
 
-        selectedPlayerCard.setHealth(selectedPlayerCard.getHealth() - opponentCard.getAttack());
-        opponentCard.setHealth(opponentCard.getHealth() - selectedPlayerCard.getAttack());
+        selectedPlayerCard.takeDamage(opponentCard.getAttack());
+        opponentCard.takeDamage(selectedPlayerCard.getAttack());
 
-        if (selectedPlayerCard.hasDoubleAttack() && selectedPlayerCard.getHealth() > 0) {
-            opponentCard.setHealth(opponentCard.getHealth() - selectedPlayerCard.getAttack());
+        if (selectedPlayerCard.hasDoubleAttack() && selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
+            opponentCard.takeDamage(selectedPlayerCard.getAttack());
             lastRoundResult += "Player's " + selectedPlayerCard.getName() + " attacks again!\n";
         }
 
-        if (opponentCard.hasDoubleAttack() && opponentCard.getHealth() > 0) {
-            selectedPlayerCard.setHealth(selectedPlayerCard.getHealth() - opponentCard.getAttack());
+        if (opponentCard.hasDoubleAttack() && opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
+            selectedPlayerCard.takeDamage(opponentCard.getAttack());
             lastRoundResult += "Opponent's " + opponentCard.getName() + " attacks again!\n";
         }
 
@@ -81,12 +83,13 @@ public class Battle {
                 lastRoundResult += "Both cards survived the round!\n";
             }
         }
-        return opponentIndex >= opponentBattleDeck.size();
+        return opponentIndex >= opponentDeck.size();
     }
 
     private boolean reviveCard(Card card){
-        if (card.hasRevive() && !card.hasRevived()){
+        if (card.hasRevive() && !card.hasRevived() && card.getHealth() <= 0){
             card.revive();
+            card.setHealth(card.getMaxHealth());
             lastRoundResult += card.getName() + " revives with full HP!\n";
             return true;
         }
@@ -98,6 +101,15 @@ public class Battle {
     }
 
     public boolean didPlayerWin () {
-        return opponentIndex >= opponentBattleDeck.size();
+        return opponentIndex >= opponentDeck.size();
+    }
+
+    private Card getNextOpponentCard(){
+        while (opponentIndex < opponentDeck.size()){
+            Card nextCard = opponentDeck.get(opponentIndex);
+            if (nextCard.getHealth() > 0) return nextCard;
+            opponentIndex++;
+        }
+        return null;
     }
 }
