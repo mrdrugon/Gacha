@@ -3,24 +3,38 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class InventoryGUI {
     private JFrame frame;
     private JPanel inventoryPanel;
     private JPanel deckPanel;
-    private Map<Card, Integer> inventory;
-    private Map<Card, Integer> deckCount;
+
+    private Map<Integer, Integer> inventory;  // Store counts by card ID
+    private Map<Integer, Card> cardLookup;    // Map ID -> Card object
+    private Map<Integer, Integer> deckCount;  // Store counts by card ID
     private List<Card> deck;
     private static final int DECK_SIZE = 5;
     private static final int UPGRADE_THRESHOLD = 10;
 
-    public InventoryGUI(Map<Card, Integer> inventory, List<Card> deck) {
-        this.inventory = inventory;
+    public InventoryGUI(List<Card> inventoryList, List<Card> deck) {
+        this.inventory = new HashMap<>();
+        this.cardLookup = new HashMap<>();
         this.deck = deck;
         this.deckCount = new HashMap<>();
-        for (Card card : deck) {
-            deckCount.put(card, deckCount.getOrDefault(card, 0) + 1);
+
+        // Populate inventory and lookup table
+        for (Card card : inventoryList) {
+            int cardId = card.getId();
+            inventory.put(cardId, inventory.getOrDefault(cardId, 0) + 1);
+            cardLookup.put(cardId, card);
         }
+
+        for (Card card : deck) {
+            int cardId = card.getId();
+            deckCount.put(cardId, deckCount.getOrDefault(cardId, 0) + 1);
+        }
+
         initUI();
     }
 
@@ -51,12 +65,13 @@ public class InventoryGUI {
             JButton cardButton;
             if (i < deck.size()) {
                 Card card = deck.get(i);
-                cardButton = new JButton(card.getName() + " (ATK: " + card.getAttack() + ", HP: " + card.getHealth() + ")\n");
-                cardButton.addActionListener(e -> removeFromDeck(card));
+                cardButton = new JButton(card.getName() + " (ATK: " + card.getAttack() + ", HP: " + card.getHealth() + ")");
+                cardButton.setPreferredSize(new Dimension(100, 50));
+                cardButton.addActionListener(e -> removeFromDeck(card.getId()));
             } else {
                 cardButton = new JButton("Empty");
+                cardButton.setPreferredSize(new Dimension(100, 50));
             }
-
             deckPanel.add(cardButton);
         }
         deckPanel.revalidate();
@@ -65,66 +80,86 @@ public class InventoryGUI {
 
     private void updateInventoryDisplay() {
         inventoryPanel.removeAll();
-        for (Map.Entry<Card, Integer> entry : inventory.entrySet()) {
-            Card card = entry.getKey();
+        for (Map.Entry<Integer, Integer> entry : inventory.entrySet()) {
+            int cardId = entry.getKey();
             int count = entry.getValue();
+            Card card = cardLookup.get(cardId);
+
             JPanel cardPanel = new JPanel();
             cardPanel.setLayout(new BorderLayout());
 
-            JButton cardButton = new JButton(card.getName() + " (x" + count + ")\n");
-            cardButton.addActionListener(e -> addToDeck(card));
+            JButton cardButton = new JButton(card.getName() + " (x" + count + ")");
+            cardButton.setPreferredSize(new Dimension(100, 50));
+            cardButton.addActionListener(e -> addToDeck(cardId));
             cardPanel.add(cardButton, BorderLayout.CENTER);
 
-            if (count >= UPGRADE_THRESHOLD){
+            if (count >= UPGRADE_THRESHOLD) {
                 JButton upgradeButton = new JButton("Upgrade");
-                upgradeButton.addActionListener(e -> upgradeCard(card));
+                upgradeButton.addActionListener(e -> upgradeCard(cardId));
                 cardPanel.add(upgradeButton, BorderLayout.SOUTH);
             }
+
             inventoryPanel.add(cardPanel);
         }
         inventoryPanel.revalidate();
         inventoryPanel.repaint();
     }
 
-    private void addToDeck(Card card) {
-
-        if (deck.size() >= DECK_SIZE || inventory.getOrDefault(card, 0) <= 0) {
+    private void addToDeck(int cardId) {
+        if (deck.size() >= DECK_SIZE || inventory.getOrDefault(cardId, 0) <= 0) {
             return;
         }
 
+        Card card = cardLookup.get(cardId);
         deck.add(card);
-        deckCount.put(card, deckCount.getOrDefault(card, 0) + 1);
-        inventory.put(card, inventory.get(card) - 1);
-        if (inventory.get(card) == 0) {
-            inventory.remove(card);
+        deckCount.put(cardId, deckCount.getOrDefault(cardId, 0) + 1);
+        inventory.put(cardId, inventory.get(cardId) - 1);
+
+        if (inventory.get(cardId) == 0) {
+            inventory.remove(cardId);
         }
+
         updateDeckDisplay();
         updateInventoryDisplay();
     }
 
-    private void removeFromDeck(Card card) {
-        if (deck.contains(card)) {
-            deck.remove(card);
-            deckCount.put(card, deckCount.get(card) - 1);
-            if (deckCount.get(card) == 0) {
-                deckCount.remove(card);
+    private void removeFromDeck(int cardId) {
+        for (int i =0; i < deck.size(); i++) {
+            if (deck.get(i).getId() == cardId) {
+                deck.remove(i);
+                deckCount.put(cardId, deckCount.get(cardId) - 1);
+                if (deckCount.get(cardId) == 0) {
+                    deckCount.remove(cardId);
+                }
+                inventory.put(cardId, inventory.getOrDefault(cardId, 0) + 1);
+                break;
             }
-            inventory.put(card, inventory.getOrDefault(card, 0) + 1);
+        }
             updateDeckDisplay();
             updateInventoryDisplay();
-        }
     }
 
-    private void upgradeCard(Card card){
-        if (inventory.getOrDefault(card, 0) < UPGRADE_THRESHOLD){
+    private void upgradeCard(int cardId) {
+        if (inventory.getOrDefault(cardId, 0) < UPGRADE_THRESHOLD) {
             return;
         }
-        inventory.put(card, inventory.get(card) - UPGRADE_THRESHOLD);
-        if (inventory.get(card) == 0){
-            inventory.remove(card);
+
+        Card oldCard = cardLookup.get(cardId);
+        inventory.put(cardId, inventory.get(cardId) - UPGRADE_THRESHOLD);
+        if (inventory.get(cardId) == 0) {
+            inventory.remove(cardId);
         }
-        Card upgradedCard = new Card(card.getName() + " +1", card.getAttack() + 1, card.getHealth() + 1, card.getRarity(), card.hasDoubleAttack(), card.hasRevive());
-        inventory.put(upgradedCard, inventory.getOrDefault(upgradedCard, 0)+1);
+
+        int upgradeCardId = new Random().nextInt(1000000);
+        while (cardLookup.containsKey(upgradeCardId)){
+            upgradeCardId = new Random().nextInt(1000000);
+        }
+
+        Card upgradedCard = new Card(oldCard.getName() + " +1", oldCard.getAttack() + 1, oldCard.getHealth() + 1, oldCard.getRarity(), oldCard.hasDoubleAttack(), oldCard.hasRevive());
+
+        inventory.put(upgradeCardId, inventory.getOrDefault(upgradeCardId, 0) + 1);
+        cardLookup.put(upgradeCardId, upgradedCard);
+
         updateInventoryDisplay();
     }
 }
