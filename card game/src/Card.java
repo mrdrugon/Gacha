@@ -33,8 +33,8 @@ public class Card {
     public int getHealth() {
         return health;
     }
-    public int getId()
-    {
+
+    public int getId() {
         return id;
     }
 
@@ -84,6 +84,16 @@ public class Card {
 
     public int getMaxHealth(){
         return originalHealth;
+    }
+
+    public void resetCardState(){
+        this.health = originalHealth;
+        this.revived = false;
+        this.revive = true;
+    }
+
+    public Card createCopy() {
+        return new Card(this.name, this.attack, this.originalHealth, this.rarity, this.hasDoubleAttack, this.revive);
     }
 
     @Override
