@@ -58,7 +58,8 @@ public class Main {
     }
 
     private void openInventory() {
-        new InventoryGUI(playerInventory, playerDeck);
+        List<Card> inventoryList = new ArrayList<>(playerInventory.keySet());
+        new InventoryGUI(inventoryList, playerDeck);
     }
 
     private void startBattle() {
