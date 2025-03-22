@@ -102,17 +102,26 @@ public class BattleGUI {
         if (battleOver) {
             log("Battle Over!");
             disableAllButtons();
-            main.battleResult(battle.didPlayerWin());
             resetPlayerCards();
             frame.dispose();
+            main.battleResult(battle.getBattleOutcome());
         }
     }
 
     private void checkForBattleEnd(){
-        if (deadCardsIds.size() == playerDeck.size()){
-            log("All your cards are defeated! Battle over");
+        boolean playerLost = (deadCardsIds.size() == playerDeck.size());
+        boolean opponentLost = battle.isOpponentDefeated();
+
+        if (playerLost && opponentLost){
+            log("The battle ended in a tie!");
             disableAllButtons();
-            main.battleResult(false);
+            main.battleResult("tie");
+            resetPlayerCards();
+            frame.dispose();
+        } else if (playerLost){
+            log("All your cards are defeated! Battle over.");
+            disableAllButtons();
+            main.battleResult("loss");
             resetPlayerCards();
             frame.dispose();
         }
@@ -151,12 +160,8 @@ public class BattleGUI {
 
     private void resetPlayerCards(){
         for (Card card : playerDeck){
-            if (originalHealthMap.containsKey(card.getId())){
-                card.setHealth(originalHealthMap.get(card.getId()));
-            }
+            card.resetHealth();
         }
-        deadCardsIds.clear();
-        updatePlayerDeckUI();
     }
 
     private void log(String message) {

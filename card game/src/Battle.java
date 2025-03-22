@@ -104,6 +104,20 @@ public class Battle {
         return opponentIndex >= opponentDeck.size();
     }
 
+    public boolean isOpponentDefeated(){
+        return opponentDeck.isEmpty();
+    }
+
+    public String getBattleOutcome(){
+        if (playerDeck.isEmpty() && opponentDeck.isEmpty()){
+            return "tie";
+        } else if (playerDeck.isEmpty()){
+            return "loss";
+        } else {
+            return "win";
+        }
+    }
+
     private Card getNextOpponentCard(){
         while (opponentIndex < opponentDeck.size()){
             Card nextCard = opponentDeck.get(opponentIndex);

@@ -71,13 +71,20 @@ public class Main {
         new BattleGUI(playerDeck, enemyDeck, this);
     }
 
-    public void battleResult(boolean won) {
-        if (won) {
-            log("You won! You get a new pack.");
-            openPack();
-        } else {
-            log("You lost! You earn points.");
-            playerPoints += 10;
+    public void battleResult(String outcome) {
+        switch (outcome){
+            case "win":
+                log("You won! You get a new pack.");
+                openPack();
+                break;
+            case "loss":
+                log("You lost! You earn points.\n");
+                playerPoints += 10;
+                break;
+            case "tie":
+                log("The battle ended in a tie! You get half rewards.\n");
+                playerPoints += 5;
+                break;
         }
     }
 
