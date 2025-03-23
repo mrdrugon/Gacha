@@ -72,19 +72,15 @@ public class Main {
     }
 
     public void battleResult(String outcome) {
-        switch (outcome){
-            case "win":
-                log("You won! You get a new pack.");
-                openPack();
-                break;
-            case "loss":
-                log("You lost! You earn points.\n");
-                playerPoints += 10;
-                break;
-            case "tie":
-                log("The battle ended in a tie! You get half rewards.\n");
-                playerPoints += 5;
-                break;
+        if (outcome.equals("win")){
+            log("You won! You get a new pack.");
+            openPack();
+        } else if (outcome.equals("loss")) {
+            log("You lost! You earn points.");
+            playerPoints += 10;
+        } else if (outcome.equals("tie")) {
+            log("The battle ended in a tie! You get half rewards.");
+            playerPoints += 5;
         }
     }
 

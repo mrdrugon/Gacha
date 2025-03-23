@@ -4,6 +4,7 @@ import java.util.Random;
 
 public class Pack {
     private static final Random rand = new Random();
+    private static final int PACK_SIZE = 5;
 
     private static final Card[] COMMON_CARDS = {
             new Card("Red", 2, 3, "Common", false, false),
@@ -22,13 +23,12 @@ public class Pack {
     };
 
     private static final int COMMON_CHANCE = 600; // 60%
-    private static final int RARE_CHANCE = 990;   // 39%
-    private static final int PACK_SIZE = 5;
+    private static final int RARE_CHANCE = 990;// 39%
 
     public static List<Card> openPack() {
         List<Card> pack = new ArrayList<>();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < PACK_SIZE; i++) {
             int chance = rand.nextInt(1000);
 
             if (chance < COMMON_CHANCE) {
@@ -44,6 +44,6 @@ public class Pack {
 
     private static Card createNewCard(Card[] cardPool) {
         Card template = cardPool[rand.nextInt(cardPool.length)];
-        return template.createCopy();
+        return new Card(template.getName(), template.getAttack(), template.getOriginalHealth(), template.getRarity(), template.hasDoubleAttack(), template.hasRevive());
     }
 }

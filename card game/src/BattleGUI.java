@@ -26,6 +26,8 @@ public class BattleGUI {
             originalHealthMap.put(card.getId(), card.getHealth());
         }
 
+        resetPlayerCards();
+
         frame = new JFrame("Battle");
         frame.setSize(800, 500);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -73,6 +75,11 @@ public class BattleGUI {
     }
 
     private void playRound(Card selectedCard) {
+        if (selectedCard == null){
+            log("You must select a card first!");
+            return;
+        }
+
         int selectedCardId = selectedCard.getId();
 
         if (deadCardsIds.contains(selectedCardId)){
@@ -103,27 +110,39 @@ public class BattleGUI {
             log("Battle Over!");
             disableAllButtons();
             resetPlayerCards();
-            frame.dispose();
-            main.battleResult(battle.getBattleOutcome());
+            //frame.dispose();
         }
     }
 
+    private boolean isPlayerDefeated(){
+        for (Card card : playerDeck){
+            if (card.getHealth() > 0){
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void checkForBattleEnd(){
-        boolean playerLost = (deadCardsIds.size() == playerDeck.size());
+        boolean playerLost = isPlayerDefeated();
         boolean opponentLost = battle.isOpponentDefeated();
 
         if (playerLost && opponentLost){
             log("The battle ended in a tie!");
             disableAllButtons();
             main.battleResult("tie");
-            resetPlayerCards();
-            frame.dispose();
         } else if (playerLost){
             log("All your cards are defeated! Battle over.");
             disableAllButtons();
             main.battleResult("loss");
+        } else if (opponentLost){
+            log("You won the battle! Congratulations!");
+            disableAllButtons();
+            main.battleResult("win");
+        }
+        if (playerLost || opponentLost){
             resetPlayerCards();
-            frame.dispose();
+            //frame.dispose();
         }
     }
 
@@ -155,6 +174,7 @@ public class BattleGUI {
             deadCardsIds.remove(cardId);
             enableCard(cardId);
             log(card.getName()+" has revived!");
+            updatePlayerDeckUI();
         }
     }
 

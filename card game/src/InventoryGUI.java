@@ -20,7 +20,7 @@ public class InventoryGUI {
     public InventoryGUI(List<Card> inventoryList, List<Card> deck) {
         this.inventory = new HashMap<>();
         this.cardLookup = new HashMap<>();
-        this.deck = deck;
+        this.deck = deck; // Ensure deck state is passed correctly
         this.deckCount = new HashMap<>();
 
         // Populate inventory and lookup table
@@ -74,69 +74,94 @@ public class InventoryGUI {
             }
             deckPanel.add(cardButton);
         }
-        deckPanel.revalidate();
+        deckPanel.revalidate();  // Make sure the panel is updated
         deckPanel.repaint();
     }
 
     private void updateInventoryDisplay() {
         inventoryPanel.removeAll();
+
+        Map<String, Integer> groupedInventory = new HashMap<>();
+        Map<String, Card> cardReference = new HashMap<>();
+
+        // Update the grouped inventory only based on the cards remaining in inventory
         for (Map.Entry<Integer, Integer> entry : inventory.entrySet()) {
-            int cardId = entry.getKey();
+            Card card = cardLookup.get(entry.getKey());
+            String cardName = card.getName();
+            groupedInventory.put(cardName, groupedInventory.getOrDefault(cardName, 0) + entry.getValue());
+            cardReference.putIfAbsent(cardName, card);
+        }
+
+        for (Map.Entry<String, Integer> entry : groupedInventory.entrySet()) {
+            String cardName = entry.getKey();
             int count = entry.getValue();
-            Card card = cardLookup.get(cardId);
+            Card card = cardReference.get(cardName);
 
             JPanel cardPanel = new JPanel();
             cardPanel.setLayout(new BorderLayout());
 
             JButton cardButton = new JButton(card.getName() + " (x" + count + ")");
-            cardButton.setPreferredSize(new Dimension(100, 50));
-            cardButton.addActionListener(e -> addToDeck(cardId));
+            cardButton.setPreferredSize(new Dimension(120, 50));
+            cardButton.addActionListener(e -> addToDeck(card.getId()));
+
             cardPanel.add(cardButton, BorderLayout.CENTER);
 
             if (count >= UPGRADE_THRESHOLD) {
                 JButton upgradeButton = new JButton("Upgrade");
-                upgradeButton.addActionListener(e -> upgradeCard(cardId));
+                upgradeButton.addActionListener(e -> upgradeCard(card.getId()));
                 cardPanel.add(upgradeButton, BorderLayout.SOUTH);
             }
 
             inventoryPanel.add(cardPanel);
         }
-        inventoryPanel.revalidate();
+
+        inventoryPanel.revalidate();  // Make sure the panel is updated
         inventoryPanel.repaint();
     }
 
     private void addToDeck(int cardId) {
         if (deck.size() >= DECK_SIZE || inventory.getOrDefault(cardId, 0) <= 0) {
-            return;
+            return; // Can't add more cards if deck is full or card is unavailable
         }
 
         Card card = cardLookup.get(cardId);
-        deck.add(card);
-        deckCount.put(cardId, deckCount.getOrDefault(cardId, 0) + 1);
-        inventory.put(cardId, inventory.get(cardId) - 1);
+        deck.add(card);  // Add card to deck
 
+        // Update deck count
+        deckCount.put(cardId, deckCount.getOrDefault(cardId, 0) + 1);
+
+        // Reduce card count in inventory
+        inventory.put(cardId, inventory.get(cardId) - 1);
         if (inventory.get(cardId) == 0) {
-            inventory.remove(cardId);
+            inventory.remove(cardId);  // Remove card if count reaches 0
         }
 
+        // Update the UI
         updateDeckDisplay();
         updateInventoryDisplay();
     }
 
     private void removeFromDeck(int cardId) {
-        for (int i =0; i < deck.size(); i++) {
+        // Look for the card in the deck and remove it
+        for (int i = 0; i < deck.size(); i++) {
             if (deck.get(i).getId() == cardId) {
-                deck.remove(i);
-                deckCount.put(cardId, deckCount.get(cardId) - 1);
+                deck.remove(i);  // Remove card from deck
+
+                // Update deck count
+                deckCount.put(cardId, Math.max(deckCount.getOrDefault(cardId, 0) - 1, 0));
                 if (deckCount.get(cardId) == 0) {
                     deckCount.remove(cardId);
                 }
+
+                // Add the card back to the inventory
                 inventory.put(cardId, inventory.getOrDefault(cardId, 0) + 1);
+
+                // Update the UI
+                updateDeckDisplay();
+                updateInventoryDisplay();
                 break;
             }
         }
-            updateDeckDisplay();
-            updateInventoryDisplay();
     }
 
     private void upgradeCard(int cardId) {
@@ -155,9 +180,10 @@ public class InventoryGUI {
             upgradeCardId = new Random().nextInt(1000000);
         }
 
-        Card upgradedCard = new Card(oldCard.getName() + " +1", oldCard.getAttack() + 1, oldCard.getHealth() + 1, oldCard.getRarity(), oldCard.hasDoubleAttack(), oldCard.hasRevive());
+        Card upgradedCard = new Card(oldCard.getName() + " +1", oldCard.getAttack() + 1, oldCard.getHealth()  + 1, oldCard.getRarity(), oldCard.hasDoubleAttack(), oldCard.hasRevive());
 
-        inventory.put(upgradeCardId, inventory.getOrDefault(upgradeCardId, 0) + 1);
+        // Add upgraded card to inventory and cardLookup
+        inventory.put(upgradeCardId, 1);
         cardLookup.put(upgradeCardId, upgradedCard);
 
         updateInventoryDisplay();

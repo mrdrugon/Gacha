@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class Card {
     private String name;
     private int attack;
@@ -77,7 +79,7 @@ public class Card {
 
     public void revive(){
         if (revive && !revived){
-            setHealth(getMaxHealth());
+            resetHealth();
             this.revived = true;
         }
     }
@@ -89,11 +91,28 @@ public class Card {
     public void resetCardState(){
         this.health = originalHealth;
         this.revived = false;
-        this.revive = true;
+    }
+
+    public int compareTo(Card other){
+        return Integer.compare(this.attack, other.attack);
     }
 
     public Card createCopy() {
-        return new Card(this.name, this.attack, this.originalHealth, this.rarity, this.hasDoubleAttack, this.revive);
+        Card copy = new Card(this.name, this.attack, this.originalHealth, this.rarity, this.hasDoubleAttack, this.revive);
+        copy.id = this.id;
+        return copy;
+    }
+
+    @Override
+    public boolean equals(Object obj){
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Card card = (Card) obj;
+        return id == card.id;
+    }
+
+    public int hasCode(){
+        return Objects.hash(id);
     }
 
     @Override

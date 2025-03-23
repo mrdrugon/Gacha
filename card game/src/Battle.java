@@ -105,13 +105,35 @@ public class Battle {
     }
 
     public boolean isOpponentDefeated(){
-        return opponentDeck.isEmpty();
+        for (Card card : opponentDeck){
+            if (card.getHealth() > 0){
+                return false;
+            }
+        }
+        return true;
     }
 
     public String getBattleOutcome(){
-        if (playerDeck.isEmpty() && opponentDeck.isEmpty()){
+        boolean playerDefeated = true;
+        boolean opponentDefeated = true;
+
+        for (Card card : playerDeck){
+            if (card.getHealth() > 0){
+                playerDefeated = false;
+                break;
+            }
+        }
+
+        for (Card card : opponentDeck){
+            if (card.getHealth() > 0){
+                opponentDefeated = false;
+                break;
+            }
+        }
+
+        if (playerDefeated && opponentDefeated){
             return "tie";
-        } else if (playerDeck.isEmpty()){
+        } else if (playerDefeated){
             return "loss";
         } else {
             return "win";
