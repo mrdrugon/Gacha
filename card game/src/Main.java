@@ -1,15 +1,16 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
     private JFrame frame;
     private JPanel panel;
     private JButton openPackButton, inventoryButton, battleButton;
     private JTextArea logArea;
-    private List<Card> playerDeck;
-    private Map<Card, Integer> playerInventory;
+    // Use a global Inventory instance instead of a separate map.
+    private Inventory inventory;
     private int playerPoints;
 
     public Main() {
@@ -44,31 +45,28 @@ public class Main {
         frame.add(panel);
         frame.setVisible(true);
 
-        playerInventory = new HashMap<>();
-        playerDeck = new ArrayList<>();
+        inventory = new Inventory();
         playerPoints = 0;
     }
 
     private void openPack() {
-        List<Card> newCards = Pack.openPack();
-        for (Card card : newCards) {
-            playerInventory.put(card, playerInventory.getOrDefault(card, 0) + 1);
-        }
-        log("You opened a pack and got: " + newCards +"\n");
+        // Explicitly using java.util.List to avoid ambiguity with java.awt.List
+        java.util.List<Card> newCards = Pack.openPack();
+        inventory.addCards(newCards);
+        log("You opened a pack and got: " + newCards + "\n");
     }
 
     private void openInventory() {
-        List<Card> inventoryList = new ArrayList<>(playerInventory.keySet());
-        new InventoryGUI(inventoryList, playerDeck);
+        new InventoryGUI(inventory);
     }
 
     private void startBattle() {
-        if (playerDeck.size() < 5) {
+        if (inventory.getDeck().getDeck().size() < Deck.DECK_SIZE) {
             log("You need 5 cards in your deck to battle!");
             return;
         }
-        List<Card> enemyDeck = Pack.openPack();
-        new BattleGUI(playerDeck, enemyDeck, this);
+        java.util.List<Card> enemyDeck = Pack.openPack();
+        new BattleGUI(inventory.getDeck().getDeck(), enemyDeck, this);
     }
 
     public void battleResult(String outcome) {

@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Inventory {
-    private Map<String, Card> cardMap;  // Full collection
+    // Tracks all copies of a card by name.
+    private Map<String, List<Card>> cardMap;
     private Map<String, Integer> cardCounts;
     private Deck deck;
 
@@ -18,23 +19,22 @@ public class Inventory {
         for (Card card : newCards) {
             String cardName = card.getName();
             cardCounts.put(cardName, cardCounts.getOrDefault(cardName, 0) + 1);
-
-            // Ensure cardMap tracks all copies of the card, not just one
-            cardMap.put(cardName, card);  // Always overwrite with the latest card reference
+            cardMap.putIfAbsent(cardName, new ArrayList<>());
+            cardMap.get(cardName).add(card);
         }
     }
 
     public List<Card> getCards() {
         List<Card> cards = new ArrayList<>();
-        // For each unique card in cardCounts, add it multiple times according to its count
-        for (Map.Entry<String, Integer> entry : cardCounts.entrySet()) {
-            Card card = cardMap.get(entry.getKey());  // Corrected: Get the Card from cardMap
-            int count = entry.getValue();
-            for (int i = 0; i < count; i++) {
-                cards.add(card);
-            }
+        for (List<Card> cardList : cardMap.values()) {
+            cards.addAll(cardList);
         }
         return cards;
+    }
+
+    // Returns the internal grouping (used for display, if needed)
+    public Map<String, List<Card>> getGroupedInventory() {
+        return cardMap;
     }
 
     public int getCardCount(String cardName) {
@@ -42,46 +42,59 @@ public class Inventory {
     }
 
     public List<Card> findCardByName(String name) {
-        List<Card> matchingCards = new ArrayList<>();
-        if (cardCounts.containsKey(name)) {
-            int count = cardCounts.get(name);
-            Card card = cardMap.get(name);
-            for (int i = 0; i < count; i++) {
-                matchingCards.add(card);
-            }
+        if (cardMap.containsKey(name)) {
+            return new ArrayList<>(cardMap.get(name));
         }
-        return matchingCards;
+        return new ArrayList<>();
     }
 
     public Deck getDeck() {
         return deck;
     }
 
+    // When adding a card to the deck, remove that instance from the inventory.
     public boolean addCardToDeck(Card card) {
+        String cardName = card.getName();
+        List<Card> cards = cardMap.get(cardName);
+        if (cards == null || !cards.contains(card)) {
+            return false;
+        }
         if (deck.addCard(card)) {
-            String cardName = card.getName();
-            int count = cardCounts.getOrDefault(cardName, 0);
-
-            if (count > 0) {
-                cardCounts.put(cardName, count - 1);
-                // Remove card from cardMap if count reaches 0
-                if (cardCounts.get(cardName) == 0) {
-                    cardMap.remove(cardName);
-                }
+            cards.remove(card);
+            int count = cardCounts.get(cardName);
+            cardCounts.put(cardName, count - 1);
+            if (cardCounts.get(cardName) == 0) {
+                cardMap.remove(cardName);
             }
             return true;
         }
         return false;
     }
 
+    // When removing a card from the deck, add that instance back.
     public boolean removeCardFromDeck(Card card) {
         if (deck.removeCard(card.getId())) {
             String cardName = card.getName();
-
-            // Add the card back to the inventory
             cardCounts.put(cardName, cardCounts.getOrDefault(cardName, 0) + 1);
-            cardMap.putIfAbsent(cardName, card);
+            cardMap.putIfAbsent(cardName, new ArrayList<>());
+            cardMap.get(cardName).add(card);
+            card.setInCurDeck(false);
+            return true;
+        }
+        return false;
+    }
 
+    // Utility method to remove one copy of a card (used for upgrades)
+    public boolean removeOneCard(Card card) {
+        String cardName = card.getName();
+        List<Card> list = cardMap.get(cardName);
+        if (list != null && !list.isEmpty()) {
+            list.remove(0);
+            int count = cardCounts.get(cardName);
+            cardCounts.put(cardName, count - 1);
+            if (cardCounts.get(cardName) <= 0) {
+                cardMap.remove(cardName);
+            }
             return true;
         }
         return false;

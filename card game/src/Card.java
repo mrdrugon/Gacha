@@ -9,6 +9,7 @@ public class Card {
     private boolean revive;
     private boolean revived;
     private int id;
+    private boolean isInCurDeck;
 
     public Card(String name, int attack, int health, String rarity, boolean hasDoubleAttack, boolean revive){
         this.name = name;
@@ -20,6 +21,7 @@ public class Card {
         this.hasDoubleAttack = hasDoubleAttack;
         this.revive = revive;
         this.revived = false;
+        this.isInCurDeck = false;
     }
 
     public  String getName(){
@@ -28,6 +30,14 @@ public class Card {
 
     public int getAttack(){
         return attack;
+    }
+
+    public boolean isInCurDeck() {
+        return isInCurDeck;
+    }
+
+    public void setInCurDeck(boolean inCurDeck) {
+        isInCurDeck = inCurDeck;
     }
 
     public int getHealth() {
