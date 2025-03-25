@@ -1,14 +1,12 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Main {
     private JFrame frame;
     private JPanel panel;
-    private JButton openPackButton, inventoryButton, battleButton;
+    private JButton openPackButton, inventoryButton, battleButton, shopButton;
     private JTextArea logArea;
+
     // Use a global Inventory instance instead of a separate map.
     private Inventory inventory;
     private int playerPoints;
@@ -31,14 +29,17 @@ public class Main {
         openPackButton = new JButton("Open Pack");
         inventoryButton = new JButton("Inventory");
         battleButton = new JButton("Battle");
+        shopButton = new JButton("Shop");
 
         openPackButton.addActionListener(e -> openPack());
         inventoryButton.addActionListener(e -> openInventory());
         battleButton.addActionListener(e -> startBattle());
+        shopButton.addActionListener(e -> new ShopGUI(this));
 
         buttonPanel.add(openPackButton);
         buttonPanel.add(inventoryButton);
         buttonPanel.add(battleButton);
+        buttonPanel.add(shopButton);
 
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -82,7 +83,20 @@ public class Main {
         }
     }
 
-    private void log(String message) {
+    public int getPlayerPoints(){
+        return playerPoints;
+    }
+
+    public void addPlayerPoints(int amount){
+        playerPoints += amount;
+        log("You now have"+playerPoints+" points.");
+    }
+
+    public Inventory getInventory(){
+        return inventory;
+    }
+
+    public void log(String message) {
         logArea.append(message + "\n");
     }
 
