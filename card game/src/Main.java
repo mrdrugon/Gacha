@@ -54,7 +54,7 @@ public class Main {
         // Explicitly using java.util.List to avoid ambiguity with java.awt.List
         java.util.List<Card> newCards = Pack.openPack();
         inventory.addCards(newCards);
-        log("You opened a pack and got: " + newCards + "\n");
+        new PackOpeningGUI(newCards);
     }
 
     private void openInventory() {
