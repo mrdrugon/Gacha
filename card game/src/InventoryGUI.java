@@ -1,8 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
 import java.util.Arrays;
+
+import static com.sun.java.accessibility.util.AWTEventMonitor.addActionListener;
 
 public class InventoryGUI {
     private JFrame frame;
@@ -61,7 +64,6 @@ public class InventoryGUI {
 
     private void updateInventoryDisplay() {
         inventoryPanel.removeAll();
-        // Group cards by name and count them from the global inventory.
         Map<String, Integer> groupedCounts = new HashMap<>();
         Map<String, Card> cardReference = new HashMap<>();
         for (Card card : inventory.getCards()) {
@@ -74,17 +76,7 @@ public class InventoryGUI {
             int count = entry.getValue();
             Card card = cardReference.get(cardName);
 
-            JPanel cardPanel = new JPanel(new BorderLayout());
-            JButton cardButton = new JButton(card.getName() + " (x" + count + ")");
-            cardButton.setPreferredSize(new Dimension(120, 50));
-            cardButton.addActionListener(e -> addToDeck(card));
-            cardPanel.add(cardButton, BorderLayout.CENTER);
-
-            if (count >= UPGRADE_THRESHOLD) {
-                JButton upgradeButton = new JButton("Upgrade");
-                upgradeButton.addActionListener(e -> upgradeCard(card));
-                cardPanel.add(upgradeButton, BorderLayout.SOUTH);
-            }
+            JButton cardPanel = new CardPanel(card, count);
             inventoryPanel.add(cardPanel);
         }
         inventoryPanel.revalidate();
@@ -109,7 +101,6 @@ public class InventoryGUI {
     }
 
     private void upgradeCard(Card card) {
-        // Check if there are enough copies available.
         int count = 0;
         for (Card c : inventory.getCards()) {
             if (c.getName().equals(card.getName())) {
@@ -119,13 +110,66 @@ public class InventoryGUI {
         if (count < UPGRADE_THRESHOLD) {
             return;
         }
-        // Remove UPGRADE_THRESHOLD copies from the inventory.
         for (int i = 0; i < UPGRADE_THRESHOLD; i++) {
             inventory.removeOneCard(card);
         }
-        // Create the upgraded card.
         Card upgradedCard = new Card(card.getName() + " +1", card.getAttack() + 1, card.getHealth() + 1, card.getRarity(), card.hasDoubleAttack(), card.hasRevive());
         inventory.addCards(Arrays.asList(upgradedCard));
         updateInventoryDisplay();
+    }
+
+    private class CardPanel extends JButton {
+        private Card card;
+        private int count;
+
+        public CardPanel(Card card, int count) {
+            this.card = card;
+            this.count = count;
+            setPreferredSize(new Dimension(120, 50));
+            setOpaque(false);
+            setFocusPainted(false);
+            setBorderPainted(false);
+            setContentAreaFilled(false);
+            addActionListener(e -> addToDeck(card));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2d = (Graphics2D) g;
+            int width = getWidth();
+            int height = getHeight();
+
+            Color baseColor = getCardColor(card);
+            RadialGradientPaint gradient = new RadialGradientPaint(new Point2D.Double(width / 2.0, height / 2.0),
+                    Math.max(width, height) / 2.0f,
+                    new float[]{0f, 1f},
+                    new Color[]{baseColor.brighter(), baseColor.darker()}
+            );
+            g2d.setPaint(gradient);
+            g2d.fillRect(0, 0, width, height);
+
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            String stats = "HP: " + card.getHealth() + "        ATK: " + card.getAttack();
+            g2d.drawString(stats, 10, height - 20);
+
+            String countText = "X("+count+")";
+            g2d.drawString(countText, 10, height - 5);
+
+            super.paintComponent(g);
+        }
+    }
+
+    private Color getCardColor(Card card) {
+        switch (card.getName()) {
+            case "Red": return Color.RED;
+            case "Blue": return Color.BLUE;
+            case "Green": return Color.GREEN;
+            case "Yellow": return Color.YELLOW;
+            case "Silver": return new Color(192, 192, 192);
+            case "Gold": return new Color(255, 215, 0);
+            case "Rainbow": return Color.MAGENTA;
+            default: return new Color(100, 100, 100);
+        }
     }
 }

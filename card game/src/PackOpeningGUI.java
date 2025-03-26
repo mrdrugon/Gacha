@@ -116,18 +116,15 @@ public class PackOpeningGUI extends JFrame {
     }
 
     private Color getCardColor(Card card) {
-        switch (card.getRarity()) {
-            case "Common": return Color.GRAY;
-            case "Uncommon": return Color.GREEN;
-            case "Rare": return Color.BLUE;
-            case "Epic": return Color.MAGENTA;
-            case "Legendary": return Color.ORANGE;
-            default: return getRandomColor();
+        switch (card.getName()){
+            case "Red": return Color.RED;
+            case "Blue": return Color.BLUE;
+            case "Green": return Color.GREEN;
+            case "Yellow": return Color.YELLOW;
+            case "Silver": return new Color(192, 192, 192);
+            case "Gold": return new Color(255, 215, 0);
+            case "Rainbow": return Color.MAGENTA;
+            default: return new Color(100, 100, 100);
         }
-    }
-
-    private Color getRandomColor() {
-        Random rand = new Random();
-        return new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
     }
 }
