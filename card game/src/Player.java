@@ -20,5 +20,4 @@ public class Player {
         return attemptedHash.equals(passwordHash);
     }
 
-    // Getters and setters as needed...
 }
