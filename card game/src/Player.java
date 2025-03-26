@@ -20,4 +20,15 @@ public class Player {
         return attemptedHash.equals(passwordHash);
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public String getSalt() {
+        return salt;
+    }
 }
