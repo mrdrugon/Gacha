@@ -28,7 +28,7 @@ public class ShopGUI {
     private void buyPack(int cost){
         if (main.getPlayerPoints() >= cost){
             main.addPlayerPoints(-cost);
-            java.util.List<Card> newCards = Pack.openPack();
+            java.util.List<Card> newCards = new Normal_Pack().openPack();
             main.getInventory().addCards(newCards);
             main.log("You bought a pack and got: "+newCards);
         } else {

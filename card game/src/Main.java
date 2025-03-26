@@ -52,7 +52,7 @@ public class Main {
 
     private void openPack() {
         // Explicitly using java.util.List to avoid ambiguity with java.awt.List
-        java.util.List<Card> newCards = Pack.openPack();
+        java.util.List<Card> newCards = new Normal_Pack().openPack();
         inventory.addCards(newCards);
         new PackOpeningGUI(newCards);
     }
@@ -66,7 +66,7 @@ public class Main {
             log("You need 5 cards in your deck to battle!");
             return;
         }
-        java.util.List<Card> enemyDeck = Pack.openPack();
+        java.util.List<Card> enemyDeck = new Normal_Pack().openPack();
         new BattleGUI(inventory.getDeck().getDeck(), enemyDeck, this);
     }
 
