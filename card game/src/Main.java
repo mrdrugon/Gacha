@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Random;
 
 public class Main extends JFrame {
     private CardLayout cardLayout;
@@ -206,12 +207,23 @@ public class Main extends JFrame {
     }
 
     private void openPack() {
-        // Enforce factory usage.
-        Pack pack = PackFactory.createPack(PackType.NORMAL);
+        Random rand = new Random();
+        int chance = rand.nextInt(100); // Generates a number from 0 to 99.
+        PackType packType;
+        if (chance < 60) {
+            packType = PackType.NORMAL;       // 60%
+        } else if (chance < 90) {             // 60-89 = 30%
+            packType = PackType.RARE;
+        } else {                            // 90-99 = 10%
+            packType = PackType.LEGENDARY;
+        }
+
+        Pack pack = PackFactory.createPack(packType);
         java.util.List<ICard> newCards = pack.openPack();
         inventory.addCards(newCards);
         new PackOpeningGUI(newCards);
     }
+
 
     private void openInventory() {
         new InventoryGUI(inventory);
