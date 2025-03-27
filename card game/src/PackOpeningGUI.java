@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -7,25 +9,30 @@ import java.util.Random;
 
 public class PackOpeningGUI extends JFrame {
     private JPanel panel;
+    private JLabel displayLabel;
     private Timer timer;
     private List<Card> cards;
     private int cardIndex = 0;
     private boolean packOpened = false;
     private boolean showingFinalScreen = false;
+    private ImageIcon packIcon;
 
     public PackOpeningGUI(List<Card> cards) {
         this.cards = cards;
 
         setTitle("Pack Opening");
-        setSize(400, 500);
+        setSize(300, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         panel = new JPanel(new BorderLayout());
-        JLabel displayLabel = new JLabel(new ImageIcon("card game/cards/pack.png"));
+        displayLabel = new JLabel();
         displayLabel.setHorizontalAlignment(JLabel.CENTER);
+        packIcon = new ImageIcon("card game/cards/pack.png");
 
-        // Click listener for pack opening and cycling through cards
+        resizePackImage();
+
+        panel.add(displayLabel, BorderLayout.CENTER);
         panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
@@ -37,9 +44,23 @@ public class PackOpeningGUI extends JFrame {
             }
         });
 
-        panel.add(displayLabel, BorderLayout.CENTER);
+        // Resize listener to adjust the image when window size changes
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                resizePackImage();
+            }
+        });
+
         add(panel);
         setVisible(true);
+    }
+
+    private void resizePackImage(){
+        int width = getWidth();
+        int height = getHeight();
+        Image scaledImage = packIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        displayLabel.setIcon(new ImageIcon(scaledImage));
     }
 
     private void openPackAnimation() {
@@ -65,7 +86,7 @@ public class PackOpeningGUI extends JFrame {
 
             JPanel cardPanel = new JPanel();
             cardPanel.setBackground(getCardColor(card));
-            cardPanel.setPreferredSize(new Dimension(250, 180));
+            cardPanel.setPreferredSize(new Dimension(100, 150));
             cardPanel.setLayout(new BorderLayout());
 
             JLabel cardLabel = new JLabel(card.getName(), JLabel.CENTER);

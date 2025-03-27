@@ -14,7 +14,7 @@ public class Normal_Pack implements Pack {
     };
 
     private static final Card[] RARE_CARDS = {
-            new Card("silver", 4, 4, "Rare", false, false),
+            new Card("Silver", 4, 4, "Rare", false, false),
             new Card("Gold", 5, 3, "Rare", false, false)
     };
 

@@ -1,6 +1,10 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.Arrays;
@@ -16,12 +20,22 @@ public class InventoryGUI {
     private Inventory inventory;
     private static final int DECK_SIZE = 5;
     private static final int UPGRADE_THRESHOLD = 10;
+    private BufferedImage metallicTexture;
 
     public InventoryGUI(Inventory inventory) {
         this.inventory = inventory;
+        loadTexture();
         initUI();
         updateDeckDisplay();
         updateInventoryDisplay();
+    }
+
+    private void loadTexture(){
+        try{
+            metallicTexture = ImageIO.read(new File("card game/cards/metallicTexture.png"));
+        } catch (IOException e){
+            metallicTexture = null;
+        }
     }
 
     private void initUI() {
@@ -148,6 +162,16 @@ public class InventoryGUI {
             g2d.setPaint(gradient);
             g2d.fillRect(0, 0, width, height);
 
+            if (metallicTexture != null) {
+                if (card.getName().equals("Gold")) {
+                    BufferedImage tintedTexture = applyTint(metallicTexture, new Color(255, 215, 0, 80));
+                    g2d.drawImage(tintedTexture, 0, 0, width, height, null);
+                } else if (card.getName().equals("Silver")) {
+                    BufferedImage tintedTexture = applyTint(metallicTexture, new Color(100, 100, 100, 50));
+                    g2d.drawImage(tintedTexture, 0, 0, width, height, null);
+                }
+            }
+
             g2d.setColor(Color.WHITE);
             g2d.setFont(new Font("Arial", Font.BOLD, 12));
             String stats = "HP: " + card.getHealth() + "        ATK: " + card.getAttack();
@@ -157,6 +181,17 @@ public class InventoryGUI {
             g2d.drawString(countText, 10, height - 5);
 
             super.paintComponent(g);
+        }
+
+        private BufferedImage applyTint(BufferedImage image, Color tint){
+            BufferedImage tinted = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TRANSLUCENT);
+            Graphics2D g2d = tinted.createGraphics();
+            g2d.drawImage(image, 0, 0, null);
+            g2d.setColor(tint);
+            g2d.setComposite(AlphaComposite.SrcOver);
+            g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
+            g2d.dispose();
+            return tinted;
         }
     }
 
