@@ -6,7 +6,7 @@ import java.util.List;
 public class BattleGUI {
     private JFrame frame;
     private JTextArea battleLog;
-    private JPanel playerDeckPanel;
+    private JLayeredPane playerDeckPanel;
     private Map<Integer, JButton> cardButtonsMap;
     private Battle battle;
     private Main main;
@@ -38,8 +38,9 @@ public class BattleGUI {
         battleLog.setEditable(false);
         panel.add(new JScrollPane(battleLog), BorderLayout.CENTER);
 
-        playerDeckPanel = new JPanel(new GridLayout(0, 5));
-        panel.add(playerDeckPanel, BorderLayout.NORTH);
+        playerDeckPanel = new JLayeredPane();
+        playerDeckPanel.setPreferredSize(new Dimension(400, 120));
+        frame.add(playerDeckPanel, BorderLayout.SOUTH);
 
         frame.add(panel);
         frame.setVisible(true);
@@ -52,10 +53,22 @@ public class BattleGUI {
         playerDeckPanel.removeAll();
         cardButtonsMap.clear();
 
-        for (ICard card : playerDeck) {
-            int cardId = card.getId();
-            JButton cardButton = new JButton("<html>" + card.getName() + "<br>ATK: " + card.getAttack() + "<br>HP: " + card.getHealth() + "</html>");
+        int xOffset = 100;
+        int cardWidth = 80;
+        int cardHeight = 120;
+        int hoverOffset = 1;
 
+        int totalWidth = (playerDeck.size() - 1) * xOffset + cardWidth;
+        int startX = (playerDeckPanel.getWidth() - totalWidth) / 2;
+
+        for (int i = 0; i < playerDeck.size(); i++){
+            ICard card = playerDeck.get(i);
+            JButton cardButton = new JButton("<html>"+card.getName()+"<br>ATK: "+card.getAttack()+"<br>HP: "+card.getHealth()+"</html>");
+            cardButton.setBounds(startX + i * xOffset, 0, cardWidth, cardHeight);
+            cardButton.setBackground(Color.WHITE);
+            cardButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+            int cardId = card.getId();
             if (card.getHealth() <= 0) {
                 deadCardsIds.add(cardId);
             }
@@ -67,7 +80,35 @@ public class BattleGUI {
                 cardButton.addActionListener(e -> playRound(card));
                 cardButtonsMap.put(cardId, cardButton);
             }
-            playerDeckPanel.add(cardButton);
+
+            int index = i;
+            cardButton.addMouseListener(new java.awt.event.MouseAdapter(){
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt){
+                    for (int j = 0; j < playerDeck.size(); j++){
+                        JButton btn = cardButtonsMap.get(playerDeck.get(j).getId());
+                        if (j < index){
+                            btn.setBounds(startX + j * xOffset, 0, cardWidth, cardHeight);
+                        } else if (j > index) {
+                            btn.setBounds((startX + j * xOffset) + hoverOffset, 0, cardWidth, cardHeight);
+                        }
+                    }
+                    cardButton.setBounds(startX + index * xOffset, -20, cardWidth, cardHeight + 20);
+                    playerDeckPanel.repaint();
+                }
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt){
+                    for (int j = 0; j < playerDeck.size(); j++){
+                        JButton btn = cardButtonsMap.get(playerDeck.get(j).getId());
+                        btn.setBounds(startX + j * xOffset, 0, cardWidth, cardHeight);
+                    }
+                    playerDeckPanel.repaint();
+                }
+            });
+
+            int layer = i;
+            playerDeckPanel.add(cardButton, Integer.valueOf(layer));
+            cardButtonsMap.put(card.getId(), cardButton);
         }
 
         playerDeckPanel.revalidate();
