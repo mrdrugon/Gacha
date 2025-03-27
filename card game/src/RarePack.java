@@ -4,7 +4,7 @@ import java.util.Random;
 
 final class RarePack implements Pack {
     private static final Random rand = new Random();
-    private static final int PACK_SIZE = 5;
+    private static final int PACK_SIZE = 3;
 
     private static final ICard[] RARE_CARDS = {
             new BasicCard("Silver", 4, 4, "Rare"),

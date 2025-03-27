@@ -4,7 +4,7 @@ import java.util.Random;
 
 final class LegendaryPack implements Pack {
     private static final Random rand = new Random();
-    private static final int PACK_SIZE = 5;
+    private static final int PACK_SIZE = 1;
 
     private static final ICard[] LEGENDARY_CARDS = {
             new BasicCard("Rainbow", 6, 6, "Legendary")
