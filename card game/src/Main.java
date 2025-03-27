@@ -169,7 +169,7 @@ public class Main extends JFrame {
                 Player newPlayer = new Player(username, password);
                 PlayerManager.addPlayer(newPlayer);
                 JOptionPane.showMessageDialog(Main.this, "Signup successful! Please login now.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                // Optionally switch to the login tab.
+                // Switch to the login tab.
                 tabbedPane.setSelectedIndex(0);
             }
         });
@@ -197,7 +197,6 @@ public class Main extends JFrame {
         buttonPanel.add(shopButton);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Button actions.
         openPackButton.addActionListener(e -> openPack());
         inventoryButton.addActionListener(e -> openInventory());
         battleButton.addActionListener(e -> startBattle());
@@ -207,7 +206,9 @@ public class Main extends JFrame {
     }
 
     private void openPack() {
-        java.util.List<ICard> newCards = new NormalPack().openPack();
+        // Enforce factory usage.
+        Pack pack = PackFactory.createPack(PackType.NORMAL);
+        java.util.List<ICard> newCards = pack.openPack();
         inventory.addCards(newCards);
         new PackOpeningGUI(newCards);
     }
@@ -221,7 +222,9 @@ public class Main extends JFrame {
             log("You need 5 cards in your deck to battle!");
             return;
         }
-        java.util.List<ICard> enemyDeck = new NormalPack().openPack();
+        // Create enemy deck using factory.
+        Pack enemyPack = PackFactory.createPack(PackType.NORMAL);
+        java.util.List<ICard> enemyDeck = enemyPack.openPack();
         new BattleGUI(inventory.getDeck().getDeck(), enemyDeck, this);
     }
 
