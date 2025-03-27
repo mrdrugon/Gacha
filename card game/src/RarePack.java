@@ -19,7 +19,13 @@ final class RarePack implements Pack {
         List<ICard> pack = new ArrayList<>();
         for (int i = 0; i < PACK_SIZE; i++) {
             ICard template = RARE_CARDS[rand.nextInt(RARE_CARDS.length)];
-            pack.add(new BasicCard(template.getName(), template.getAttack(), template.getHealth(), "Rare"));
+            // Create a fresh instance.
+            ICard card = new BasicCard(template.getName(), template.getAttack(), template.getHealth(), "Rare");
+            // If the card is "Silver", decorate it with double attack ability.
+            if (card.getName().equalsIgnoreCase("Silver")) {
+                card = new DoubleAttackDecorator(card);
+            }
+            pack.add(card);
         }
         return pack;
     }
