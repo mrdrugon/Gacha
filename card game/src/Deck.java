@@ -2,33 +2,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Deck {
-    private ArrayList<Card> deck;
+    private ArrayList<ICard> deck;
     public static final int DECK_SIZE = 5;
 
     public Deck() {
         this.deck = new ArrayList<>();
     }
 
-    public List<Card> getDeck() {
+    public List<ICard> getDeck() {
         return new ArrayList<>(deck);
     }
 
-    public boolean addCard(Card card) {
+    public boolean addCard(ICard card) {
         if (deck.size() < DECK_SIZE) {
-            // Check if the card already exists in the deck based on its ID
-            for (Card deckCard : deck) {
+            // Check if card already exists in deck based on its ID.
+            for (ICard deckCard : deck) {
                 if (deckCard.getId() == card.getId()) {
-                    return false;  // Card already in deck
+                    return false;
                 }
             }
-            deck.add(card);  // Add the card to the deck if it's not already there
+            deck.add(card);
             return true;
         }
         return false;
     }
 
     public boolean removeCard(int cardId) {
-        // Remove the card from the deck based on its ID
         return deck.removeIf(card -> card.getId() == cardId);
     }
 

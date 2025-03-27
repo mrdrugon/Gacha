@@ -3,16 +3,16 @@ import java.util.List;
 import java.util.Map;
 
 public class Battle {
-    private List<Card> playerDeck;
-    private List<Card> opponentDeck;
-    private Map<Integer, Card> playerCardsMap;
-    private Map<Integer, Card> opponentCardsMap;
+    private List<ICard> playerDeck;
+    private List<ICard> opponentDeck;
+    private Map<Integer, ICard> playerCardsMap;
+    private Map<Integer, ICard> opponentCardsMap;
 
     private int opponentIndex;
     private String lastRoundResult;
-    public Card selectedPlayerCard;
+    public ICard selectedPlayerCard;
 
-    public Battle(List<Card> playerDeck, List<Card> opponentDeck) {
+    public Battle(List<ICard> playerDeck, List<ICard> opponentDeck) {
         this.playerDeck = playerDeck;
         this.opponentDeck = opponentDeck;
         this.playerCardsMap = new HashMap<>();
@@ -20,26 +20,25 @@ public class Battle {
         this.opponentIndex = 0;
         this.lastRoundResult = "";
 
-        for (Card card : playerDeck){
+        for (ICard card : playerDeck) {
             playerCardsMap.put(card.getId(), card);
         }
 
-        for (Card card : opponentDeck){
+        for (ICard card : opponentDeck) {
             opponentCardsMap.put(card.getId(), card);
         }
-
     }
 
-    public boolean playerSelectedCard(Card selectedCard){
-        Card cardToSelect = playerCardsMap.get(selectedCard.getId());
-            if (cardToSelect != null && cardToSelect.getHealth() > 0){
-                selectedPlayerCard = cardToSelect;
-                return true;
-            }
+    public boolean playerSelectedCard(ICard selectedCard) {
+        ICard cardToSelect = playerCardsMap.get(selectedCard.getId());
+        if (cardToSelect != null && cardToSelect.getHealth() > 0) {
+            selectedPlayerCard = cardToSelect;
+            return true;
+        }
         return false;
     }
 
-    public boolean playNextRound(Card selectedCard) {
+    public boolean playNextRound(ICard selectedCard) {
         while (opponentIndex < opponentDeck.size() && opponentDeck.get(opponentIndex).getHealth() <= 0) {
             opponentIndex++;
         }
@@ -48,7 +47,7 @@ public class Battle {
             return true;
         }
 
-        Card opponentCard = getNextOpponentCard();
+        ICard opponentCard = getNextOpponentCard();
         if (opponentCard == null) return true;
 
         lastRoundResult = "Player's " + selectedPlayerCard.getName() + " (ATK: " + selectedPlayerCard.getAttack() + ", HP: " + selectedPlayerCard.getHealth() + ") VS "
@@ -57,92 +56,87 @@ public class Battle {
         selectedPlayerCard.takeDamage(opponentCard.getAttack());
         opponentCard.takeDamage(selectedPlayerCard.getAttack());
 
-        if (selectedPlayerCard.hasDoubleAttack() && selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
+        // Example: if a card has double attack ability (via decorator)
+        if (selectedPlayerCard instanceof DoubleAttackDecorator && selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
             opponentCard.takeDamage(selectedPlayerCard.getAttack());
             lastRoundResult += "Player's " + selectedPlayerCard.getName() + " attacks again!\n";
         }
-
-        if (opponentCard.hasDoubleAttack() && opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
+        if (opponentCard instanceof DoubleAttackDecorator && opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
             selectedPlayerCard.takeDamage(opponentCard.getAttack());
             lastRoundResult += "Opponent's " + opponentCard.getName() + " attacks again!\n";
         }
 
-        boolean playerRevived = selectedPlayerCard.getHealth() <= 0 && reviveCard(selectedPlayerCard);
-        boolean opponentRevived = opponentCard.getHealth() <= 0 && reviveCard(opponentCard);
+        // Check revive decorators (invoking revive method if available)
+        if (selectedPlayerCard.getHealth() <= 0 && selectedPlayerCard instanceof ReviveDecorator) {
+            ((ReviveDecorator) selectedPlayerCard).revive();
+            lastRoundResult += selectedPlayerCard.getName() + " revives with full HP!\n";
+        }
+        if (opponentCard.getHealth() <= 0 && opponentCard instanceof ReviveDecorator) {
+            ((ReviveDecorator) opponentCard).revive();
+            lastRoundResult += opponentCard.getName() + " revives with full HP!\n";
+        }
 
-        if (!playerRevived && !opponentRevived) {
-            if (selectedPlayerCard.getHealth() <= 0 && opponentCard.getHealth() <= 0) {
-                lastRoundResult += "It's a tie! Both cards are eliminated.\n";
-                opponentIndex++;
-            } else if (selectedPlayerCard.getHealth() <= 0) {
-                lastRoundResult += "Opponent's " + opponentCard.getName() + " wins the round!\n";
-            } else if (opponentCard.getHealth() <= 0) {
-                lastRoundResult += "Player's " + selectedPlayerCard.getName() + " wins the round!\n";
-                opponentIndex++;
-            } else {
-                lastRoundResult += "Both cards survived the round!\n";
-            }
+        if (selectedPlayerCard.getHealth() <= 0 && opponentCard.getHealth() <= 0) {
+            lastRoundResult += "It's a tie! Both cards are eliminated.\n";
+            opponentIndex++;
+        } else if (selectedPlayerCard.getHealth() <= 0) {
+            lastRoundResult += "Opponent's " + opponentCard.getName() + " wins the round!\n";
+        } else if (opponentCard.getHealth() <= 0) {
+            lastRoundResult += "Player's " + selectedPlayerCard.getName() + " wins the round!\n";
+            opponentIndex++;
+        } else {
+            lastRoundResult += "Both cards survived the round!\n";
         }
         return opponentIndex >= opponentDeck.size();
     }
 
-    private boolean reviveCard(Card card){
-        if (card.hasRevive() && !card.hasRevived() && card.getHealth() <= 0){
-            card.revive();
-            card.setHealth(card.getMaxHealth());
-            lastRoundResult += card.getName() + " revives with full HP!\n";
-            return true;
-        }
-        return false;
-    }
-
-    public String getLastRoundResult () {
+    public String getLastRoundResult() {
         return lastRoundResult;
     }
 
-    public boolean didPlayerWin () {
+    public boolean didPlayerWin() {
         return opponentIndex >= opponentDeck.size();
     }
 
-    public boolean isOpponentDefeated(){
-        for (Card card : opponentDeck){
-            if (card.getHealth() > 0){
+    public boolean isOpponentDefeated() {
+        for (ICard card : opponentDeck) {
+            if (card.getHealth() > 0) {
                 return false;
             }
         }
         return true;
     }
 
-    public String getBattleOutcome(){
+    public String getBattleOutcome() {
         boolean playerDefeated = true;
         boolean opponentDefeated = true;
 
-        for (Card card : playerDeck){
-            if (card.getHealth() > 0){
+        for (ICard card : playerDeck) {
+            if (card.getHealth() > 0) {
                 playerDefeated = false;
                 break;
             }
         }
 
-        for (Card card : opponentDeck){
-            if (card.getHealth() > 0){
+        for (ICard card : opponentDeck) {
+            if (card.getHealth() > 0) {
                 opponentDefeated = false;
                 break;
             }
         }
 
-        if (playerDefeated && opponentDefeated){
+        if (playerDefeated && opponentDefeated) {
             return "tie";
-        } else if (playerDefeated){
+        } else if (playerDefeated) {
             return "loss";
         } else {
             return "win";
         }
     }
 
-    private Card getNextOpponentCard(){
-        while (opponentIndex < opponentDeck.size()){
-            Card nextCard = opponentDeck.get(opponentIndex);
+    private ICard getNextOpponentCard() {
+        while (opponentIndex < opponentDeck.size()) {
+            ICard nextCard = opponentDeck.get(opponentIndex);
             if (nextCard.getHealth() > 0) return nextCard;
             opponentIndex++;
         }

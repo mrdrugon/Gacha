@@ -9,18 +9,18 @@ import java.util.*;
 import java.util.List;
 import java.util.Arrays;
 
-import static com.sun.java.accessibility.util.AWTEventMonitor.addActionListener;
-
 public class InventoryGUI {
     private JFrame frame;
     private JPanel inventoryPanel;
     private JPanel deckPanel;
-
-    // Now the GUI uses the global Inventory instance.
     private Inventory inventory;
     private static final int DECK_SIZE = 5;
     private static final int UPGRADE_THRESHOLD = 10;
     private BufferedImage metallicTexture;
+
+    // UI helper fields
+    private Map<Integer, JButton> cardButtonsMap = new HashMap<>();
+    private Set<Integer> deadCardsIds = new HashSet<>();
 
     public InventoryGUI(Inventory inventory) {
         this.inventory = inventory;
@@ -30,10 +30,10 @@ public class InventoryGUI {
         updateInventoryDisplay();
     }
 
-    private void loadTexture(){
-        try{
+    private void loadTexture() {
+        try {
             metallicTexture = ImageIO.read(new File("card game/cards/metallicTexture.png"));
-        } catch (IOException e){
+        } catch (IOException e) {
             metallicTexture = null;
         }
     }
@@ -58,17 +58,27 @@ public class InventoryGUI {
 
     private void updateDeckDisplay() {
         deckPanel.removeAll();
-        List<Card> deck = inventory.getDeck().getDeck();
-        for (int i = 0; i < DECK_SIZE; i++) {
-            JButton cardButton;
-            if (i < deck.size()) {
-                Card card = deck.get(i);
-                cardButton = new JButton(card.getName() + " (ATK: " + card.getAttack() + ", HP: " + card.getHealth() + ")");
-                cardButton.setPreferredSize(new Dimension(100, 50));
-                cardButton.addActionListener(e -> removeFromDeck(card));
+        cardButtonsMap.clear();
+        deadCardsIds.clear();
+
+        // Get the deck from the inventory.
+        List<ICard> deck = inventory.getDeck().getDeck();
+        for (ICard card : deck) {
+            int cardId = card.getId();
+            JButton cardButton = new JButton("<html>"
+                    + card.getName()
+                    + "<br>ATK: " + card.getAttack()
+                    + "<br>HP: " + card.getHealth() + "</html>");
+            if (card.getHealth() <= 0) {
+                deadCardsIds.add(cardId);
+            }
+            if (deadCardsIds.contains(cardId)) {
+                cardButton.setEnabled(false);
+                cardButton.setBackground(Color.GRAY);
             } else {
-                cardButton = new JButton("Empty");
-                cardButton.setPreferredSize(new Dimension(100, 50));
+                // In this UI, clicking a deck card will remove it from the deck.
+                cardButton.addActionListener(e -> removeFromDeck(card));
+                cardButtonsMap.put(cardId, cardButton);
             }
             deckPanel.add(cardButton);
         }
@@ -79,8 +89,9 @@ public class InventoryGUI {
     private void updateInventoryDisplay() {
         inventoryPanel.removeAll();
         Map<String, Integer> groupedCounts = new HashMap<>();
-        Map<String, Card> cardReference = new HashMap<>();
-        for (Card card : inventory.getCards()) {
+        Map<String, ICard> cardReference = new HashMap<>();
+
+        for (ICard card : inventory.getCards()) {
             String name = card.getName();
             groupedCounts.put(name, groupedCounts.getOrDefault(name, 0) + 1);
             cardReference.put(name, card);
@@ -88,8 +99,7 @@ public class InventoryGUI {
         for (Map.Entry<String, Integer> entry : groupedCounts.entrySet()) {
             String cardName = entry.getKey();
             int count = entry.getValue();
-            Card card = cardReference.get(cardName);
-
+            ICard card = cardReference.get(cardName);
             JButton cardPanel = new CardPanel(card, count);
             inventoryPanel.add(cardPanel);
         }
@@ -97,7 +107,7 @@ public class InventoryGUI {
         inventoryPanel.repaint();
     }
 
-    private void addToDeck(Card card) {
+    private void addToDeck(ICard card) {
         if (inventory.getDeck().isFull()) {
             return;
         }
@@ -107,16 +117,16 @@ public class InventoryGUI {
         }
     }
 
-    private void removeFromDeck(Card card) {
+    private void removeFromDeck(ICard card) {
         if (inventory.removeCardFromDeck(card)) {
             updateDeckDisplay();
             updateInventoryDisplay();
         }
     }
 
-    private void upgradeCard(Card card) {
+    private void upgradeCard(ICard card) {
         int count = 0;
-        for (Card c : inventory.getCards()) {
+        for (ICard c : inventory.getCards()) {
             if (c.getName().equals(card.getName())) {
                 count++;
             }
@@ -127,16 +137,19 @@ public class InventoryGUI {
         for (int i = 0; i < UPGRADE_THRESHOLD; i++) {
             inventory.removeOneCard(card);
         }
-        Card upgradedCard = new Card(card.getName() + " +1", card.getAttack() + 1, card.getHealth() + 1, card.getRarity(), card.hasDoubleAttack(), card.hasRevive());
+        // Create an upgraded card.
+        // For rarity, we assume ICard has a getRarity() method; if not, we can cast to BasicCard.
+        String rarity = (card instanceof BasicCard) ? ((BasicCard) card).getRarity() : "Common";
+        ICard upgradedCard = new BasicCard(card.getName() + " +1", card.getAttack() + 1, card.getHealth() + 1, rarity);
         inventory.addCards(Arrays.asList(upgradedCard));
         updateInventoryDisplay();
     }
 
     private class CardPanel extends JButton {
-        private Card card;
+        private ICard card;
         private int count;
 
-        public CardPanel(Card card, int count) {
+        public CardPanel(ICard card, int count) {
             this.card = card;
             this.count = count;
             setPreferredSize(new Dimension(120, 50));
@@ -154,7 +167,8 @@ public class InventoryGUI {
             int height = getHeight();
 
             Color baseColor = getCardColor(card);
-            RadialGradientPaint gradient = new RadialGradientPaint(new Point2D.Double(width / 2.0, height / 2.0),
+            RadialGradientPaint gradient = new RadialGradientPaint(
+                    new Point2D.Double(width / 2.0, height / 2.0),
                     Math.max(width, height) / 2.0f,
                     new float[]{0f, 1f},
                     new Color[]{baseColor.brighter(), baseColor.darker()}
@@ -177,13 +191,13 @@ public class InventoryGUI {
             String stats = "HP: " + card.getHealth() + "        ATK: " + card.getAttack();
             g2d.drawString(stats, 10, height - 20);
 
-            String countText = "X("+count+")";
+            String countText = "X(" + count + ")";
             g2d.drawString(countText, 10, height - 5);
 
             super.paintComponent(g);
         }
 
-        private BufferedImage applyTint(BufferedImage image, Color tint){
+        private BufferedImage applyTint(BufferedImage image, Color tint) {
             BufferedImage tinted = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TRANSLUCENT);
             Graphics2D g2d = tinted.createGraphics();
             g2d.drawImage(image, 0, 0, null);
@@ -195,7 +209,7 @@ public class InventoryGUI {
         }
     }
 
-    private Color getCardColor(Card card) {
+    private Color getCardColor(ICard card) {
         switch (card.getName()) {
             case "Red": return Color.RED;
             case "Blue": return Color.BLUE;

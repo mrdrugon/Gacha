@@ -5,21 +5,19 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.Random;
 
 public class PackOpeningGUI extends JFrame {
     private JPanel panel;
     private JLabel displayLabel;
     private Timer timer;
-    private List<Card> cards;
+    private List<ICard> cards; // Changed from List<Card> to List<ICard>
     private int cardIndex = 0;
     private boolean packOpened = false;
     private boolean showingFinalScreen = false;
     private ImageIcon packIcon;
 
-    public PackOpeningGUI(List<Card> cards) {
+    public PackOpeningGUI(List<ICard> cards) { // Parameter now List<ICard>
         this.cards = cards;
-
         setTitle("Pack Opening");
         setSize(300, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -44,7 +42,6 @@ public class PackOpeningGUI extends JFrame {
             }
         });
 
-        // Resize listener to adjust the image when window size changes
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -56,7 +53,7 @@ public class PackOpeningGUI extends JFrame {
         setVisible(true);
     }
 
-    private void resizePackImage(){
+    private void resizePackImage() {
         int width = getWidth();
         int height = getHeight();
         Image scaledImage = packIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
@@ -81,7 +78,7 @@ public class PackOpeningGUI extends JFrame {
 
     private void showNextCard() {
         if (cardIndex < cards.size()) {
-            Card card = cards.get(cardIndex);
+            ICard card = cards.get(cardIndex);
             panel.removeAll();
 
             JPanel cardPanel = new JPanel();
@@ -117,7 +114,7 @@ public class PackOpeningGUI extends JFrame {
 
         JPanel finalPanel = new JPanel(new GridLayout(0, 3, 10, 10));
 
-        for (Card card : cards) {
+        for (ICard card : cards) {
             JPanel cardPanel = new JPanel();
             cardPanel.setBackground(getCardColor(card));
             cardPanel.setPreferredSize(new Dimension(100, 150));
@@ -136,16 +133,24 @@ public class PackOpeningGUI extends JFrame {
         panel.repaint();
     }
 
-    private Color getCardColor(Card card) {
-        switch (card.getName()){
-            case "Red": return Color.RED;
-            case "Blue": return Color.BLUE;
-            case "Green": return Color.GREEN;
-            case "Yellow": return Color.YELLOW;
-            case "Silver": return new Color(192, 192, 192);
-            case "Gold": return new Color(255, 215, 0);
-            case "Rainbow": return Color.MAGENTA;
-            default: return new Color(100, 100, 100);
+    private Color getCardColor(ICard card) {
+        switch (card.getName()) {
+            case "Red":
+                return Color.RED;
+            case "Blue":
+                return Color.BLUE;
+            case "Green":
+                return Color.GREEN;
+            case "Yellow":
+                return Color.YELLOW;
+            case "Silver":
+                return new Color(192, 192, 192);
+            case "Gold":
+                return new Color(255, 215, 0);
+            case "Rainbow":
+                return Color.MAGENTA;
+            default:
+                return new Color(100, 100, 100);
         }
     }
 }
