@@ -39,7 +39,7 @@ public class CardRenderer {
 
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font("Arial", Font.BOLD, 12));
-        String stats = "HP: " + card.getHealth() + "        ATK: " + card.getAttack();
+        String stats = "HP: " + card.getHealth() + " ATK: " + card.getAttack();
         g2d.drawString(stats, 10, height - 20);
         loadTexture();
     }
