@@ -182,12 +182,22 @@ public class BattleGUI {
             playerCard.setBounds(playerStart.x, playerStart.y, playerSize.width, playerSize.height);
             opponentCard.setBounds(opponentStart.x, opponentStart.y, opponentSize.width, opponentSize.height);
             parent.repaint();
-            System.out.println("Animation completed.");
-            onComplete.run();
         });
         moveBack.setRepeats(false);
         moveBack.setInitialDelay(600); // Ensures they move back AFTER the shake
         moveBack.start();
+
+        // Step 4: Hide Cards After Animation Ends
+        Timer hideCards = new Timer(1000, e -> {
+            System.out.println("Hiding cards...");
+            playerCard.setVisible(false);
+            opponentCard.setVisible(false);
+            parent.repaint();
+            onComplete.run(); // Call the onComplete action
+        });
+        hideCards.setRepeats(false);
+        hideCards.setInitialDelay(1400); // Wait until after the full animation is done
+        hideCards.start();
     }
 
     private boolean isPlayerDefeated() {
