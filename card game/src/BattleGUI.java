@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -72,12 +73,10 @@ public class BattleGUI {
             CardPanel cardPanel = new CardPanel(card);
             cardPanel.setBounds(startX + i * xOffset, 0, cardWidth, cardHeight);
 
-            final int index = i;
-
             cardPanel.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    playRound(card);
+                    playRound(card, cardPanel);
                 }
             });
 
@@ -89,45 +88,106 @@ public class BattleGUI {
         playerDeckPanel.repaint();
     }
 
-
-    private void playRound(ICard selectedCard) {
+    private void playRound(ICard selectedCard, CardPanel selectedCardPanel) {
         if (selectedCard == null) {
             log("You must select a card first!");
             return;
         }
 
-        int selectedCardId = selectedCard.getId();
-
-        if (deadCardsIds.contains(selectedCardId)) {
-            log("This card is already defeated!");
-            return;
-        }
-
+        // Make sure the card is selected before the round starts
         if (!battle.playerSelectedCard(selectedCard)) {
-            log("Invalid card selection! that card is defeated.");
-            deadCardsIds.add(selectedCardId);
-            disableCard(selectedCardId);
-            checkForBattleEnd();
+            log("Failed to select the card!");
             return;
         }
 
-        boolean battleOver = battle.playNextRound(selectedCard);
-        log(battle.getLastRoundResult());
-
-        if (selectedCard.getHealth() <= 0) {
-            deadCardsIds.add(selectedCardId);
-            disableCard(selectedCardId);
+        ICard opponentCard = battle.getNextOpponentCard();
+        if (opponentCard == null) {
+            log("No more opponent cards left!");
+            return;
         }
 
-        updatePlayerDeckUI();
-        checkForBattleEnd();
+        BattlePanel battlePanel = new BattlePanel();
 
-        if (battleOver) {
-            log("Battle Over!");
-            disableAllButtons();
-            resetPlayerCards();
-            frame.dispose();
-        }
+        // Set the cards for the battle
+        CardPanel playerCardPanel = new CardPanel(selectedCard);
+        CardPanel opponentCardPanel = new CardPanel(opponentCard);
+        BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
+
+        // Add the battle panel to the frame
+        frame.getContentPane().add(battlePanel, BorderLayout.CENTER);
+        frame.revalidate();
+        frame.repaint();
+
+        // Schedule the animation in the Event Dispatch Thread (EDT) for smooth UI updates
+        SwingUtilities.invokeLater(() -> {
+            animateBattle(playerCardPanel, opponentCardPanel, () -> {
+                // Proceed to the next round after the animation
+                boolean battleOver = battle.playNextRound(selectedCard);
+
+                updatePlayerDeckUI();
+                checkForBattleEnd();
+
+                if (battleOver) {
+                    log("Battle Over!");
+                    disableAllButtons();
+                    resetPlayerCards();
+                    frame.dispose();
+                }
+            });
+        });
+    }
+
+
+    private void animateBattle(CardPanel playerCard, CardPanel opponentCard, Runnable onComplete) {
+        int moveDistance = 80;
+        int shakeAmount = 20;
+
+        Container parent = playerCard.getParent();
+        parent.setLayout(null); // Ensure absolute positioning
+
+        // Save initial positions
+        Point playerStart = playerCard.getLocation();
+        Point opponentStart = opponentCard.getLocation();
+        Dimension playerSize = playerCard.getSize();
+        Dimension opponentSize = opponentCard.getSize();
+
+        // Compute attack positions
+        Point playerAttack = new Point(playerStart.x - moveDistance, playerStart.y); // Player moves LEFT
+        Point opponentShake = new Point(opponentStart.x + shakeAmount, opponentStart.y); // Opponent shakes
+
+        System.out.println("Starting animation...");
+
+        // Step 1: Move Player Forward FIRST
+        Timer moveForward = new Timer(300, e -> {
+            System.out.println("Player card moving forward...");
+            playerCard.setBounds(playerAttack.x, playerAttack.y, playerSize.width, playerSize.height);
+            parent.repaint();
+        });
+        moveForward.setRepeats(false);
+        moveForward.start();
+
+        // Step 2: Shake Opponent (AFTER Player Moves)
+        Timer shakeOpponent = new Timer(500, e -> {
+            System.out.println("Opponent card shaking...");
+            opponentCard.setBounds(opponentShake.x, opponentShake.y, opponentSize.width, opponentSize.height);
+            parent.repaint();
+        });
+        shakeOpponent.setRepeats(false);
+        shakeOpponent.setInitialDelay(300); // Delays shake until after player attacks
+        shakeOpponent.start();
+
+        // Step 3: Move Both Back to Original Positions
+        Timer moveBack = new Timer(800, e -> {
+            System.out.println("Cards moving back...");
+            playerCard.setBounds(playerStart.x, playerStart.y, playerSize.width, playerSize.height);
+            opponentCard.setBounds(opponentStart.x, opponentStart.y, opponentSize.width, opponentSize.height);
+            parent.repaint();
+            System.out.println("Animation completed.");
+            onComplete.run();
+        });
+        moveBack.setRepeats(false);
+        moveBack.setInitialDelay(600); // Ensures they move back AFTER the shake
+        moveBack.start();
     }
 
     private boolean isPlayerDefeated() {
@@ -162,22 +222,6 @@ public class BattleGUI {
         }
     }
 
-    private void enableCard(int cardId) {
-        if (cardButtonsMap.containsKey(cardId)) {
-            JButton button = cardButtonsMap.get(cardId);
-            button.setEnabled(true);
-            button.setBackground(null);
-        }
-    }
-
-    private void disableCard(int cardId) {
-        if (cardButtonsMap.containsKey(cardId)) {
-            JButton button = cardButtonsMap.get(cardId);
-            button.setEnabled(false);
-            button.setBackground(Color.GRAY);
-        }
-    }
-
     private void disableAllButtons() {
         for (JButton button : cardButtonsMap.values()) {
             button.setEnabled(false);
@@ -195,7 +239,6 @@ public class BattleGUI {
         battleLog.setCaretPosition(battleLog.getDocument().getLength());
     }
 
-
     public class CardPanel extends JPanel {
         private final ICard card;
 
@@ -210,6 +253,44 @@ public class BattleGUI {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
             CardRenderer.renderCard(g2d, card, getWidth(), getHeight());
+
+            // Draw health bar on top of the card
+            int barHeight = 10;
+            Integer originalHealth = originalHealthMap.get(card.getId());
+
+            if (originalHealth == null) {
+                // Handle the error (e.g., log an error or use current health as fallback)
+                originalHealth = card.getHealth();  // Fallback to current health
+            }
+
+            int barWidth = (int) ((card.getHealth() / (double) originalHealth) * getWidth());
+            g2d.setColor(Color.RED);
+            g2d.fillRect(0, 0, barWidth, barHeight);  // Health bar
+            g2d.setColor(Color.BLACK);
+            g2d.drawRect(0, 0, getWidth(), barHeight);  // Border around health bar
+        }
+    }
+
+    public class BattlePanel extends JPanel {
+        private CardPanel playerCardPanel;
+        private CardPanel opponentCardPanel;
+
+        // Static method to set the cards
+        public static void setCards(BattlePanel battlePanel, CardPanel playerCard, CardPanel opponentCard) {
+            // Set player and opponent cards on the panel
+            battlePanel.playerCardPanel = playerCard;
+            battlePanel.opponentCardPanel = opponentCard;
+
+            battlePanel.add(playerCard);
+            battlePanel.add(opponentCard);
+            battlePanel.revalidate();
+            battlePanel.repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            // Custom rendering logic (optional)
         }
     }
 }

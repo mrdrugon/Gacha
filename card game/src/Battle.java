@@ -134,7 +134,7 @@ public class Battle {
         }
     }
 
-    private ICard getNextOpponentCard() {
+    public ICard getNextOpponentCard() {
         while (opponentIndex < opponentDeck.size()) {
             ICard nextCard = opponentDeck.get(opponentIndex);
             if (nextCard.getHealth() > 0) return nextCard;
