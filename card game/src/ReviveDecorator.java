@@ -1,5 +1,5 @@
 public class ReviveDecorator extends CardDecorator {
-    private boolean revived;
+    public boolean revived;
 
     public ReviveDecorator(ICard card) {
         super(card);
