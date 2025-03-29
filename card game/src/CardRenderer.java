@@ -47,11 +47,63 @@ public class CardRenderer {
             }
         }
 
-        // Draw card stats
-        g2d.setColor(Color.WHITE);
-        g2d.setFont(new Font("Arial", Font.BOLD, 12));
-        String stats = "HP: " + card.getHealth() + " ATK: " + card.getAttack();
-        g2d.drawString(stats, 10, height - 20);
+        // Set text properties
+        g2d.setColor(Color.BLACK);
+        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+
+        // Draw Name (centered)
+        FontMetrics fm = g2d.getFontMetrics();
+        int nameX = (width - fm.stringWidth(card.getName())) / 2;
+        g2d.drawString(card.getName(), nameX, 20);
+
+        // Draw Stats (left-aligned)
+        g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+        g2d.drawString("HP: " + card.getHealth(), 10, 50);
+        g2d.drawString("ATK: " + card.getAttack(), 10, 70);
+
+
+        //Draw Double Attack
+        if (card instanceof DoubleAttackDecorator){
+            DoubleAttackDecorator doubleAttack = (DoubleAttackDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String doubleAttackText = ("If card survived an attack, it attacks again");
+            drawMultilineText(g2d, doubleAttackText, 10, 120, width - 20);
+
+        }
+
+        //Draw Revive
+        if (card instanceof ReviveDecorator){
+            ReviveDecorator Revive = (ReviveDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("After death the card revives with full health");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+
+        }
+    }
+
+    private static void drawMultilineText(Graphics2D g2d, String text, int x, int y, int maxWidth) {
+        FontMetrics fm = g2d.getFontMetrics();
+        int lineHeight = fm.getHeight();
+        String[] words = text.split(" ");
+        StringBuilder line = new StringBuilder();
+        int currentY = y;
+
+        for (String word : words) {
+            if (fm.stringWidth(line + word) > maxWidth) {
+                g2d.drawString(line.toString(), x, currentY);
+                currentY += lineHeight;
+                line = new StringBuilder(word + " ");
+            } else {
+                line.append(word).append(" ");
+            }
+        }
+        g2d.drawString(line.toString(), x, currentY);
     }
 
     private static BufferedImage applyTint(BufferedImage image, Color tint) {
