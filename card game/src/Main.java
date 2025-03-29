@@ -6,14 +6,12 @@ import java.util.Random;
 public class Main extends JFrame {
     private CardLayout cardLayout;
     private JPanel cardPanel;
-
-    // Game UI components
     private JTextArea logArea;
     private Inventory inventory;
     private int playerPoints;
+    private MainMenuGUI mainMenu;
 
     public Main() {
-        // Initialize game state
         inventory = new Inventory();
         playerPoints = 0;
 
@@ -22,21 +20,25 @@ public class Main extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Use CardLayout to switch between auth and game panels.
+
+
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
 
-        // Create and add the authentication panel (with Login and Sign Up tabs)
+        // Authentication Panel
         JPanel authPanel = buildAuthPanel();
         cardPanel.add(authPanel, "auth");
 
-        // Create and add the main game panel
-        JPanel gamePanel = buildGamePanel();
-        cardPanel.add(gamePanel, "game");
+        // Main Menu Panel
+        mainMenu = new MainMenuGUI("Player", this);
+        cardPanel.add(mainMenu, "mainMenu");
+
+        logArea = new JTextArea(0, 0);
+        logArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(logArea);
 
         add(cardPanel);
-        // Show the authentication panel first.
-        cardLayout.show(cardPanel, "auth");
+        cardLayout.show(cardPanel, "auth"); // Show login/signup first
     }
 
     private JPanel buildAuthPanel() {
@@ -126,87 +128,53 @@ public class Main extends JFrame {
         // ----- Action Listeners -----
 
         // Login action listener.
-        loginButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String username = loginUsername.getText().trim();
-                String password = new String(loginPassword.getPassword());
-                if (username.isEmpty() || password.isEmpty()) {
-                    JOptionPane.showMessageDialog(Main.this, "Please fill in both fields", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                Player player = PlayerManager.getPlayer(username);
-                if (player == null) {
-                    JOptionPane.showMessageDialog(Main.this, "User not found", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                if (player.verifyPassword(password)) {
-                    JOptionPane.showMessageDialog(Main.this, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    // Switch to the game panel.
-                    cardLayout.show(cardPanel, "game");
-                } else {
-                    JOptionPane.showMessageDialog(Main.this, "Incorrect password", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+        loginButton.addActionListener(e -> {
+            String username = loginUsername.getText().trim();
+            String password = new String(loginPassword.getPassword());
+
+            if (!username.isEmpty() && !password.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                // Create MainMenuGUI with the required arguments
+                mainMenu = new MainMenuGUI(username, this);
+                cardPanel.add(mainMenu, "mainMenu");
+
+                cardLayout.show(cardPanel, "mainMenu");  // Switch to main menu
+            } else {
+                JOptionPane.showMessageDialog(this, "Invalid login", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         // Sign Up action listener.
-        signupButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String username = signupUsername.getText().trim();
-                String password = new String(signupPassword.getPassword());
-                String confirm = new String(signupConfirm.getPassword());
-                if (username.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
-                    JOptionPane.showMessageDialog(Main.this, "Please fill in all fields", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                if (!password.equals(confirm)) {
-                    JOptionPane.showMessageDialog(Main.this, "Passwords do not match", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                if (PlayerManager.playerExists(username)) {
-                    JOptionPane.showMessageDialog(Main.this, "Username already taken", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                Player newPlayer = new Player(username, password);
-                PlayerManager.addPlayer(newPlayer);
-                JOptionPane.showMessageDialog(Main.this, "Signup successful! Please login now.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                // Switch to the login tab.
-                tabbedPane.setSelectedIndex(0);
+        signupButton.addActionListener(e -> {
+            String username = signupUsername.getText().trim();
+            String password = new String(signupPassword.getPassword());
+            String confirm = new String(signupConfirm.getPassword());
+
+            if (!password.equals(confirm)) {
+                JOptionPane.showMessageDialog(this, "Passwords do not match", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Signup successful! Please login.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                tabbedPane.setSelectedIndex(0); // Switch to login tab
             }
         });
 
         return panel;
     }
 
+    public void openGamePanel() {
+        JPanel gamePanel = buildGamePanel();
+        cardPanel.add(gamePanel, "game");
+        cardLayout.show(cardPanel, "game");
+    }
+
     private JPanel buildGamePanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        // Log area for game messages.
-        logArea = new JTextArea();
-        logArea.setEditable(false);
-        JScrollPane logScroll = new JScrollPane(logArea);
-        panel.add(logScroll, BorderLayout.CENTER);
-
-        // Button panel with game options.
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 4));
-        JButton openPackButton = new JButton("Open Pack");
-        JButton inventoryButton = new JButton("Inventory");
-        JButton battleButton = new JButton("Battle");
-        JButton shopButton = new JButton("Shop");
-        buttonPanel.add(openPackButton);
-        buttonPanel.add(inventoryButton);
-        buttonPanel.add(battleButton);
-        buttonPanel.add(shopButton);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
-
-        openPackButton.addActionListener(e -> openPack());
-        inventoryButton.addActionListener(e -> openInventory());
-        battleButton.addActionListener(e -> startBattle());
-        shopButton.addActionListener(e -> new ShopGUI(Main.this));
-
+        JPanel panel = new JPanel();
+        panel.add(new JLabel("Game Screen"));
         return panel;
     }
 
-    private void openPack() {
+    public void openPack() {
         Random rand = new Random();
         int chance = rand.nextInt(100); // Generates a number from 0 to 99.
         PackType packType;
@@ -225,11 +193,11 @@ public class Main extends JFrame {
     }
 
 
-    private void openInventory() {
+    public void openInventory() {
         new InventoryGUI(inventory);
     }
 
-    private void startBattle() {
+    public void startBattle() {
         if (inventory.getDeck().getDeck().size() < Deck.DECK_SIZE) {
             log("You need 5 cards in your deck to battle!");
             return;
@@ -264,6 +232,10 @@ public class Main extends JFrame {
 
     public Inventory getInventory() {
         return inventory;
+    }
+
+    public void setLogArea(JTextArea logArea) {
+        this.logArea = logArea;
     }
 
     public void log(String message) {
