@@ -21,8 +21,13 @@ final class NormalPack implements Pack {
         List<ICard> pack = new ArrayList<>();
         for (int i = 0; i < PACK_SIZE; i++) {
             ICard template = COMMON_CARDS[rand.nextInt(COMMON_CARDS.length)];
-            // Create a fresh instance. Optionally, apply decorators here.
-            pack.add(new BasicCard(template.getName(), template.getAttack(), template.getHealth(), "Common"));
+            // Create a fresh instance.
+            ICard card = new BasicCard(template.getName(), template.getAttack(), template.getHealth(), "Common");
+
+            if (card.getName().equalsIgnoreCase("Yellow")) {
+                card = new ReviveDecorator(card);
+            }
+            pack.add(card);
         }
         return pack;
     }

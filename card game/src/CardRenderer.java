@@ -7,16 +7,27 @@ import java.io.IOException;
 
 public class CardRenderer {
     private static BufferedImage metallicTexture;
+    private static BufferedImage goldTexture;
+    private static BufferedImage silverTexture;
+
+    static {
+        loadTexture(); // Load textures once
+    }
 
     private static void loadTexture() {
         try {
             metallicTexture = ImageIO.read(new File("card game/cards/metallicTexture.png"));
+            goldTexture = applyTint(metallicTexture, new Color(255, 215, 0, 80));
+            silverTexture = applyTint(metallicTexture, new Color(100, 100, 100, 50));
         } catch (IOException e) {
             metallicTexture = null;
+            goldTexture = null;
+            silverTexture = null;
         }
     }
 
-    public static void renderCard(Graphics2D g2d, ICard card, int width, int height){
+    public static void renderCard(Graphics2D g2d, ICard card, int width, int height) {
+        // Background gradient
         Color baseColor = getCardColor(card);
         RadialGradientPaint gradient = new RadialGradientPaint(
                 new Point2D.Double(width / 2.0, height / 2.0),
@@ -27,21 +38,20 @@ public class CardRenderer {
         g2d.setPaint(gradient);
         g2d.fillRect(0, 0, width, height);
 
+        // Apply metallic texture
         if (metallicTexture != null) {
-            if (card.getName().equals("Gold")) {
-                BufferedImage tintedTexture = applyTint(metallicTexture, new Color(255, 215, 0, 80));
-                g2d.drawImage(tintedTexture, 0, 0, width, height, null);
-            } else if (card.getName().equals("Silver")) {
-                BufferedImage tintedTexture = applyTint(metallicTexture, new Color(100, 100, 100, 50));
-                g2d.drawImage(tintedTexture, 0, 0, width, height, null);
+            if (card.getName().equals("Gold") && goldTexture != null) {
+                g2d.drawImage(goldTexture, 0, 0, width, height, null);
+            } else if (card.getName().equals("Silver") && silverTexture != null) {
+                g2d.drawImage(silverTexture, 0, 0, width, height, null);
             }
         }
 
+        // Draw card stats
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font("Arial", Font.BOLD, 12));
         String stats = "HP: " + card.getHealth() + " ATK: " + card.getAttack();
         g2d.drawString(stats, 10, height - 20);
-        loadTexture();
     }
 
     private static BufferedImage applyTint(BufferedImage image, Color tint) {

@@ -137,67 +137,78 @@ public class BattleGUI {
         });
     }
 
-
     private void animateBattle(CardPanel playerCard, CardPanel opponentCard, Runnable onComplete) {
-        int moveDistance = 80;
-        int shakeAmount = 20;
+        int moveDistance = 320; // Distance the cards move forward/backward
+        int shakeDistance = 10; // Shake distance for the opponent's card
+        int shakeDuration = 100; // Shake duration in milliseconds
+        int animationDuration = 400; // Total duration for player moving
 
         Container parent = playerCard.getParent();
         parent.setLayout(null); // Ensure absolute positioning
 
+        // Set initial positions for player and opponent cards with enough gap
+        Point playerStart = new Point(100, 100); // Start position of the player
+        Point opponentStart = new Point(500, 100); // Start position of the opponent
+
+        playerCard.setBounds(playerStart.x, playerStart.y, playerCard.getWidth(), playerCard.getHeight());
+        opponentCard.setBounds(opponentStart.x, opponentStart.y, opponentCard.getWidth(), opponentCard.getHeight());
+
         // Save initial positions
-        Point playerStart = playerCard.getLocation();
-        Point opponentStart = opponentCard.getLocation();
-        Dimension playerSize = playerCard.getSize();
-        Dimension opponentSize = opponentCard.getSize();
+        Point playerMoveForward = new Point(playerStart.x + moveDistance, playerStart.y); // Player moves forward
+        Point playerMoveBack = new Point(playerStart.x, playerStart.y); // Player moves back to original position
 
-        // Compute attack positions
-        Point playerAttack = new Point(playerStart.x - moveDistance, playerStart.y); // Player moves LEFT
-        Point opponentShake = new Point(opponentStart.x + shakeAmount, opponentStart.y); // Opponent shakes
+        // Shake animation for opponent
+        Timer shakeOpponent = new Timer(shakeDuration, e -> {
+            int opponentX = opponentCard.getLocation().x;
+            int opponentY = opponentCard.getLocation().y;
 
-        System.out.println("Starting animation...");
+            // Shake opponent card left and right by a small amount
+            opponentCard.setBounds(opponentX - shakeDistance, opponentY, opponentCard.getWidth(), opponentCard.getHeight());
+            parent.revalidate();  // Revalidate the parent to update the layout
+            parent.repaint();  // Repaint the parent to reflect the changes
 
-        // Step 1: Move Player Forward FIRST
-        Timer moveForward = new Timer(300, e -> {
-            System.out.println("Player card moving forward...");
-            playerCard.setBounds(playerAttack.x, playerAttack.y, playerSize.width, playerSize.height);
-            parent.repaint();
-        });
-        moveForward.setRepeats(false);
-        moveForward.start();
-
-        // Step 2: Shake Opponent (AFTER Player Moves)
-        Timer shakeOpponent = new Timer(500, e -> {
-            System.out.println("Opponent card shaking...");
-            opponentCard.setBounds(opponentShake.x, opponentShake.y, opponentSize.width, opponentSize.height);
-            parent.repaint();
+            // After shake, move back to original position
+            Timer returnOpponent = new Timer(shakeDuration, event -> {
+                opponentCard.setBounds(opponentX + shakeDistance, opponentY, opponentCard.getWidth(), opponentCard.getHeight());
+                parent.revalidate();
+                parent.repaint();
+            });
+            returnOpponent.setRepeats(false);
+            returnOpponent.start();
         });
         shakeOpponent.setRepeats(false);
-        shakeOpponent.setInitialDelay(300); // Delays shake until after player attacks
-        shakeOpponent.start();
 
-        // Step 3: Move Both Back to Original Positions
-        Timer moveBack = new Timer(800, e -> {
-            System.out.println("Cards moving back...");
-            playerCard.setBounds(playerStart.x, playerStart.y, playerSize.width, playerSize.height);
-            opponentCard.setBounds(opponentStart.x, opponentStart.y, opponentSize.width, opponentSize.height);
-            parent.repaint();
-        });
-        moveBack.setRepeats(false);
-        moveBack.setInitialDelay(600); // Ensures they move back AFTER the shake
-        moveBack.start();
+        // Step 1: Player moves forward
+        Timer playerMoveForwardTimer = new Timer(animationDuration, e -> {
+            playerCard.setBounds(playerMoveForward.x, playerMoveForward.y, playerCard.getWidth(), playerCard.getHeight());
+            parent.revalidate();  // Revalidate the parent to update the layout
+            parent.repaint();  // Repaint the parent to reflect the changes
 
-        // Step 4: Hide Cards After Animation Ends
-        Timer hideCards = new Timer(1000, e -> {
-            System.out.println("Hiding cards...");
-            playerCard.setVisible(false);
-            opponentCard.setVisible(false);
-            parent.repaint();
-            onComplete.run(); // Call the onComplete action
+            // Step 2: Opponent shakes after player moves forward
+            shakeOpponent.start();
         });
-        hideCards.setRepeats(false);
-        hideCards.setInitialDelay(1400); // Wait until after the full animation is done
-        hideCards.start();
+        playerMoveForwardTimer.setRepeats(false);
+        playerMoveForwardTimer.start();
+
+        // Step 3: Player moves back after shaking opponent
+        Timer playerMoveBackTimer = new Timer(animationDuration * 2, e -> {
+            playerCard.setBounds(playerMoveBack.x, playerMoveBack.y, playerCard.getWidth(), playerCard.getHeight());
+            parent.revalidate();  // Revalidate the parent to update the layout
+            parent.repaint();  // Repaint the parent to reflect the changes
+
+            // Step 4: Opponent repeats the shake animation
+            shakeOpponent.start();
+        });
+        playerMoveBackTimer.setRepeats(false);
+        playerMoveBackTimer.setInitialDelay(animationDuration * 2); // Start after player moves back
+        playerMoveBackTimer.start();
+
+        // Complete the animation
+        Timer completeTimer = new Timer(animationDuration * 3, e -> {
+            onComplete.run(); // Call the onComplete action after all animations are finished
+        });
+        completeTimer.setRepeats(false);
+        completeTimer.start();
     }
 
     private boolean isPlayerDefeated() {
