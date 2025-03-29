@@ -212,13 +212,6 @@ public class BattleGUI {
         playerMoveBackTimer.setInitialDelay(animationDuration * 2); // Start after card moves back
         playerMoveBackTimer.start();
 
-        // Complete the animation
-        Timer completeTimer = new Timer(animationDuration * 3, e -> {
-            onComplete.run(); // Call the onComplete action after all animations are finished
-        });
-        completeTimer.setRepeats(false);
-        completeTimer.start();
-
         Timer hideCards = new Timer(1500, e -> {
             playerCard.setVisible(false);
             opponentCard.setVisible(false);
