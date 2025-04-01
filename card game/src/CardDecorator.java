@@ -21,6 +21,16 @@ public abstract class CardDecorator implements ICard {
     }
 
     @Override
+    public int getOriginalHealth() {
+        return decoratedCard.getOriginalHealth();
+    }
+
+    @Override
+    public void setHealth(int health) {
+        decoratedCard.setHealth(health);
+    }
+
+    @Override
     public void takeDamage(int damage) {
         decoratedCard.takeDamage(damage);
     }

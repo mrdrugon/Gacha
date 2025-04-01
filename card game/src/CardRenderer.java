@@ -9,6 +9,9 @@ public class CardRenderer {
     private static BufferedImage metallicTexture;
     private static BufferedImage goldTexture;
     private static BufferedImage silverTexture;
+    private static BufferedImage copperTexture;
+    private static BufferedImage brassTexture;
+    private static BufferedImage platinumTexture;
 
     static {
         loadTexture(); // Load textures once
@@ -19,10 +22,16 @@ public class CardRenderer {
             metallicTexture = ImageIO.read(new File("card game/cards/metallicTexture.png"));
             goldTexture = applyTint(metallicTexture, new Color(255, 215, 0, 80));
             silverTexture = applyTint(metallicTexture, new Color(100, 100, 100, 50));
+            copperTexture = applyTint(metallicTexture, new Color(198,131,70, 80));
+            brassTexture = applyTint(metallicTexture, new Color(181,166,66, 80));
+            platinumTexture = applyTint(metallicTexture, new Color(217, 217, 217, 50));
         } catch (IOException e) {
             metallicTexture = null;
             goldTexture = null;
             silverTexture = null;
+            copperTexture = null;
+            brassTexture = null;
+            platinumTexture = null;
         }
     }
 
@@ -44,6 +53,12 @@ public class CardRenderer {
                 g2d.drawImage(goldTexture, 0, 0, width, height, null);
             } else if (card.getName().equals("Silver") && silverTexture != null) {
                 g2d.drawImage(silverTexture, 0, 0, width, height, null);
+            } else if (card.getName().equals("Copper") && copperTexture != null) {
+                g2d.drawImage(copperTexture, 0, 0, width, height, null);
+            } else if (card.getName().equals("Brass") && brassTexture != null) {
+                g2d.drawImage(brassTexture, 0, 0, width, height, null);
+            } else if (card.getName().equals("Platinum") && platinumTexture != null) {
+                g2d.drawImage(platinumTexture, 0, 0, width, height, null);
             }
         }
 
@@ -85,6 +100,63 @@ public class CardRenderer {
             drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
 
         }
+
+        //Draw Self Observe
+        if (card instanceof SelfObserveDecorator){
+            SelfObserveDecorator Self = (SelfObserveDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("The less health you have, the more damage you do");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //poison attack
+        if (card instanceof PoisonAttackDecorator){
+            PoisonAttackDecorator Poison = (PoisonAttackDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("The opponent lose health at the start of every turn");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+
+        //regeneration
+        if (card instanceof RegenerationDecorator){
+            RegenerationDecorator Reg = (RegenerationDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("After taking damage, the card recovers 15% of it's health");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+
+        //self-harm
+        if (card instanceof SelfHarmDecorator){
+            SelfHarmDecorator Harm = (SelfHarmDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Attacks two times the damage, but has 25% of destroying it self ");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //triple attack
+        if (card instanceof TripleSliceDecorator){
+            TripleSliceDecorator attack = (TripleSliceDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = (" Attack three times per turn. Each subsequent attack will deal less damage than the previous one.");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
     }
 
     private static void drawMultilineText(Graphics2D g2d, String text, int x, int y, int maxWidth) {
@@ -123,8 +195,27 @@ public class CardRenderer {
             case "Blue": return Color.BLUE;
             case "Green": return Color.GREEN;
             case "Yellow": return Color.YELLOW;
+            case "Orange": return Color.ORANGE;
+            case "Pink": return Color.PINK;
+            case "Purple": return new Color(157,0,255);
+            case "Crimson": return new Color(178,34,34);
+            case "Rose": return new Color(250,0,63);
+            case "Aqua": return new Color(0,255,240);
+            case "Violet": return new Color(127,0,255);
+            case "Coral": return new Color(255,133,89);
+            case "Cyan": return new Color(0,255,255);
+            case "Flamingo": return new Color(252,142,172);
+
+            case "Copper": return new Color(198,131,70);
+            case "Brass": return new Color(181,166,66);
+            case "Platinum": return new Color(217,217,217);
             case "Silver": return new Color(192, 192, 192);
             case "Gold": return new Color(255, 215, 0);
+
+            case "Sapphire": return new Color(15,82,186);
+            case "Ruby": return new Color(224,17,95);
+            case "Emerald": return new Color(80,200,120);
+            case "Amethyst": return new Color(153,102,204);
             case "Rainbow": return Color.MAGENTA;
             default: return new Color(100, 100, 100);
         }

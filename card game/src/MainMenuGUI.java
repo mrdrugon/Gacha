@@ -28,7 +28,7 @@ public class MainMenuGUI extends JPanel {
         // Battle Button (Large Center Button)
         battleButton = new JButton("Battle");
         battleButton.setFont(new Font("Arial", Font.BOLD, 28));
-        battleButton.setBounds(100, 80, 250, 150);
+        battleButton.setBounds(100, 80, 250, 200);
         add(battleButton);
 
         // Cards Button

@@ -10,7 +10,19 @@ final class NormalPack implements Pack {
             new BasicCard("Red", 2, 3, "Common"),
             new BasicCard("Blue", 3, 2, "Common"),
             new BasicCard("Green", 2, 4, "Common"),
-            new BasicCard("Yellow", 3, 3, "Common")
+            new BasicCard("Yellow", 3, 3, "Common"),
+            new BasicCard("Purple", 4, 2, "Common"),
+            new BasicCard("Pink", 2, 2, "Common"),
+            new BasicCard("Orange", 4, 4, "Common"),
+
+            new BasicCard("Crimson", 3, 4, "Common"),
+            new BasicCard("Rose", 4, 3, "Common"),
+            new BasicCard("Aqua", 5, 5, "Common"),
+            new BasicCard("Violet", 2, 5, "Common"),
+            new BasicCard("Coral", 4, 5, "Common"),
+            new BasicCard("Cyan", 5, 4, "Common"),
+            new BasicCard("Flamingo", 5, 3, "Common")
+
     };
 
     // Package-private constructor: only classes in this package can instantiate.

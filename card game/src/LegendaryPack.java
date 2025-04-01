@@ -7,7 +7,12 @@ final class LegendaryPack implements Pack {
     private static final int PACK_SIZE = 1;
 
     private static final ICard[] LEGENDARY_CARDS = {
-            new BasicCard("Rainbow", 6, 6, "Legendary")
+            new BasicCard("Sapphire", 8, 9, "Legendary"),
+            new BasicCard("Ruby", 9, 8, "Legendary"),
+            new BasicCard("Emerald", 9, 7, "Legendary"),
+            new BasicCard("Amethyst", 7, 9, "Legendary"),
+
+            new BasicCard("Rainbow", 9, 9, "Legendary")
     };
 
     // Package-private constructor.

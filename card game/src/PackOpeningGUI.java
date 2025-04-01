@@ -135,22 +135,33 @@ public class PackOpeningGUI extends JFrame {
 
     private Color getCardColor(ICard card) {
         switch (card.getName()) {
-            case "Red":
-                return Color.RED;
-            case "Blue":
-                return Color.BLUE;
-            case "Green":
-                return Color.GREEN;
-            case "Yellow":
-                return Color.YELLOW;
-            case "Silver":
-                return new Color(192, 192, 192);
-            case "Gold":
-                return new Color(255, 215, 0);
-            case "Rainbow":
-                return Color.MAGENTA;
-            default:
-                return new Color(100, 100, 100);
+            case "Red": return Color.RED;
+            case "Blue": return Color.BLUE;
+            case "Green": return Color.GREEN;
+            case "Yellow": return Color.YELLOW;
+            case "Orange": return Color.ORANGE;
+            case "Pink": return Color.PINK;
+            case "Purple": return new Color(157,0,255);
+            case "Crimson": return new Color(178,34,34);
+            case "Rose": return new Color(250,0,63);
+            case "Aqua": return new Color(0,255,240);
+            case "Violet": return new Color(127,0,255);
+            case "Coral": return new Color(255,133,89);
+            case "Cyan": return new Color(0,255,255);
+            case "Flamingo": return new Color(252,142,172);
+
+            case "Copper": return new Color(198,131,70);
+            case "Brass": return new Color(181,166,66);
+            case "Platinum": return new Color(217,217,217);
+            case "Silver": return new Color(192, 192, 192);
+            case "Gold": return new Color(255, 215, 0);
+
+            case "Sapphire": return new Color(15,82,186);
+            case "Ruby": return new Color(224,17,95);
+            case "Emerald": return new Color(80,200,120);
+            case "Amethyst": return new Color(153,102,204);
+            case "Rainbow": return Color.MAGENTA;
+            default: return new Color(100, 100, 100);
         }
     }
 }

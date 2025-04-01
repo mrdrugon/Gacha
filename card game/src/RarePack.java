@@ -7,8 +7,12 @@ final class RarePack implements Pack {
     private static final int PACK_SIZE = 3;
 
     private static final ICard[] RARE_CARDS = {
-            new BasicCard("Silver", 4, 4, "Rare"),
-            new BasicCard("Gold", 5, 3, "Rare")
+            new BasicCard("Silver", 6, 6, "Rare"),
+            new BasicCard("Gold", 5, 6, "Rare"),
+            new BasicCard("Copper", 6, 5, "Rare"),
+            new BasicCard("Brass", 6, 7, "Rare"),
+            new BasicCard("Platinum", 7, 6, "Rare")
+
     };
 
     // Package-private constructor.

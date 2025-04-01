@@ -5,4 +5,6 @@ public interface ICard {
     void takeDamage(int damage);
     void resetHealth();
     int getId();
+    int getOriginalHealth();
+    void setHealth(int health);
 }
