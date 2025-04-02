@@ -41,6 +41,10 @@ public class BasicCard implements ICard {
         this.health = Math.min(health, originalHealth);
     }
 
+    public void setAttack(int attack){
+        this.attack = Math.max(0, attack);
+    }
+
     @Override
     public void takeDamage(int damage) {
         health = Math.max(0, health - damage);

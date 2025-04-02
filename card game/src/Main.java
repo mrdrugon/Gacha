@@ -174,17 +174,7 @@ public class Main extends JFrame {
     }
 
     public void openPack() {
-        Random rand = new Random();
-        int chance = rand.nextInt(100); // Generates a number from 0 to 99.
-        PackType packType;
-        if (chance < 60) {
-            packType = PackType.NORMAL;       // 60%
-        } else if (chance < 90) {             // 60-89 = 30%
-            packType = PackType.RARE;
-        } else {                            // 90-99 = 10%
-            packType = PackType.LEGENDARY;
-        }
-
+        PackType packType = PackType.NORMAL;
         Pack pack = PackFactory.createPack(packType);
         java.util.List<ICard> newCards = pack.openPack();
         inventory.addCards(newCards);

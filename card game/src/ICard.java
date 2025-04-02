@@ -7,4 +7,6 @@ public interface ICard {
     int getId();
     int getOriginalHealth();
     void setHealth(int health);
+    void setAttack(int attack);
+    String getRarity();
 }

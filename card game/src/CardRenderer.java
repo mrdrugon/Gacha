@@ -119,7 +119,7 @@ public class CardRenderer {
             g2d.drawString("ABILITY", 10, 100);
 
             g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("The opponent lose health at the start of every turn");
+            String ReviveText = ("The opponent losses health at the start of every turn");
             drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
         }
 
@@ -134,7 +134,6 @@ public class CardRenderer {
             String ReviveText = ("After taking damage, the card recovers 15% of it's health");
             drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
         }
-
 
         //self-harm
         if (card instanceof SelfHarmDecorator){
@@ -154,7 +153,106 @@ public class CardRenderer {
             g2d.drawString("ABILITY", 10, 100);
 
             g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = (" Attack three times per turn. Each subsequent attack will deal less damage than the previous one.");
+            String ReviveText = ("Attack three times per turn. Each subsequent attack will deal less damage than the previous one.");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //explosion
+        if (card instanceof TripleSliceDecorator){
+            TripleSliceDecorator attack = (TripleSliceDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Deals 3× damage but will cause the card to be stunned for one turn");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Shadow
+        if (card instanceof ShadowDecorator){
+            ShadowDecorator attack = (ShadowDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Reduce the opponent’s health by 10%");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //resilient
+        if (card instanceof ResilientDecorator){
+            ResilientDecorator attack = (ResilientDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Reduce incoming damage by 15%");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //barrel-roll
+        if (card instanceof BarrelRollDecorator){
+            BarrelRollDecorator attack = (BarrelRollDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("30% chance to dodge incoming attacks");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Damage Boost
+        if (card instanceof DamageBoostDecorator){
+            DamageBoostDecorator attack = (DamageBoostDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Card attack twice, with the second attack dealing 20% more damage");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Fist hit dodge
+        if (card instanceof FirstHitDogeDecorator){
+            FirstHitDogeDecorator attack = (FirstHitDogeDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Card always dodges the first attack");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Booster
+        if (card instanceof BoosterDecorator){
+            BoosterDecorator attack = (BoosterDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("All cards in deck gain 30% attack boost, on use");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Robber
+        if (card instanceof RobberDecorator){
+            RobberDecorator attack = (RobberDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("After defeating a card, steal 30% of their attack and health.");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Increaser
+        if (card instanceof IncreaserDecorator){
+            IncreaserDecorator attack = (IncreaserDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Doubles the card's attack if its attack is lower than the opponent's");
             drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
         }
     }

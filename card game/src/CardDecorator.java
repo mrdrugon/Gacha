@@ -30,6 +30,10 @@ public abstract class CardDecorator implements ICard {
         decoratedCard.setHealth(health);
     }
 
+    public void setAttack(int attack){
+        decoratedCard.setAttack(attack);
+    }
+
     @Override
     public void takeDamage(int damage) {
         decoratedCard.takeDamage(damage);
@@ -43,5 +47,10 @@ public abstract class CardDecorator implements ICard {
     @Override
     public int getId() {
         return decoratedCard.getId();
+    }
+
+    @Override
+    public String getRarity() {
+        return decoratedCard.getRarity();
     }
 }

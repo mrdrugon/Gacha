@@ -8,6 +8,8 @@ public class Battle {
     private Map<Integer, ICard> playerCardsMap;
     private Map<Integer, ICard> opponentCardsMap;
     private Map<ICard, Integer> poisendCards;
+    private Map<ICard, Integer> stunnedCards;
+    private static  ICard currentOpponentCard;
 
     private int opponentIndex;
     private String lastRoundResult;
@@ -19,6 +21,7 @@ public class Battle {
         this.playerCardsMap = new HashMap<>();
         this.opponentCardsMap = new HashMap<>();
         this.poisendCards = new HashMap<>();
+        this.stunnedCards = new HashMap<>();
         this.opponentIndex = 0;
         this.lastRoundResult = "";
 
@@ -29,6 +32,10 @@ public class Battle {
         for (ICard card : opponentDeck) {
             opponentCardsMap.put(card.getId(), card);
         }
+    }
+
+    public static ICard getCurrentOpponentCard(){
+        return currentOpponentCard;
     }
 
     public void addPoisonedCard(ICard card, int poisonDamage){
@@ -58,6 +65,8 @@ public class Battle {
 
         int playerAttack = selectedPlayerCard.getAttack();
         int opponentAttack = opponentCard.getAttack();
+
+        currentOpponentCard = opponentCard;
 
         // Check if player card has SelfObserve ability
         if (selectedPlayerCard instanceof SelfObserveDecorator) {
@@ -109,8 +118,67 @@ public class Battle {
             selectedPlayerCard.takeDamage(opponentAttack);
         }
 
-        lastRoundResult = "Player's " + selectedPlayerCard.getName() + " (ATK: " + playerAttack + ", HP: " + selectedPlayerCard.getHealth() + ") VS "
-                + "Opponent's " + opponentCard.getName() + " (ATK: " + opponentAttack + ", HP: " + opponentCard.getHealth() + ")\n";
+        //stunned
+        if (stunnedCards.containsKey(selectedPlayerCard)){
+            stunnedCards.put(selectedPlayerCard, stunnedCards.get(selectedPlayerCard) - 1);
+            if (stunnedCards.get(selectedPlayerCard) <= 0){
+                stunnedCards.remove(selectedPlayerCard);
+            }
+        } else if (selectedPlayerCard instanceof ExplosionDecorator) {
+            ((ExplosionDecorator) selectedCard).attack(opponentCard);
+            stunnedCards.put(selectedPlayerCard, 1);
+        } else {
+            opponentCard.takeDamage(playerAttack);
+        }
+
+        if (stunnedCards.containsKey(opponentCard)){
+            stunnedCards.put(opponentCard, stunnedCards.get(opponentCard) - 1);
+            if (stunnedCards.get(opponentCard) <= 0){
+                stunnedCards.remove(opponentCard);
+            }
+        } else if (opponentCard instanceof ExplosionDecorator) {
+            ((ExplosionDecorator) opponentCard).attack(selectedPlayerCard);
+            stunnedCards.put(opponentCard, 1);
+        } else {
+            selectedPlayerCard.takeDamage(opponentAttack);
+        }
+
+        //shadow
+        if (selectedPlayerCard instanceof ShadowDecorator){
+            ((ShadowDecorator) selectedPlayerCard).applyShadowEffect(opponentCard);
+        }
+
+        if (opponentCard instanceof ShadowDecorator){
+            ((ShadowDecorator) opponentCard).applyShadowEffect(selectedPlayerCard);
+        }
+
+        //resilient
+        if (selectedPlayerCard instanceof ResilientDecorator){
+            int reducedDamage = ((ResilientDecorator) selectedPlayerCard).reduceDamage(opponentCard.getAttack());
+            selectedPlayerCard.takeDamage(reducedDamage);
+        } else {
+            selectedPlayerCard.takeDamage(opponentCard.getAttack());
+        }
+
+        if (opponentCard instanceof ResilientDecorator){
+            int reducedDamage = ((ResilientDecorator) opponentCard).reduceDamage(selectedPlayerCard.getAttack());
+            opponentCard.takeDamage(reducedDamage);
+        } else {
+            opponentCard.takeDamage(selectedPlayerCard.getAttack());
+        }
+
+        //boost deck ability
+        if (selectedPlayerCard instanceof BoosterDecorator){
+            ((BoosterDecorator) selectedPlayerCard).applyBoost(playerDeck);
+        }
+
+        //steal stats
+        if (opponentCard.getHealth() <= 0){
+            if (selectedPlayerCard instanceof RobberDecorator){
+                ((RobberDecorator) selectedPlayerCard).stealStats(opponentCard);
+            }
+            opponentIndex++;
+        }
 
         selectedPlayerCard.takeDamage(opponentAttack);
         opponentCard.takeDamage(playerAttack);
@@ -118,35 +186,35 @@ public class Battle {
         // Handle double attack ability
         if (selectedPlayerCard instanceof DoubleAttackDecorator && selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
             opponentCard.takeDamage(playerAttack);
-            lastRoundResult += "Player's " + selectedPlayerCard.getName() + " attacks again!\n";
         }
         if (opponentCard instanceof DoubleAttackDecorator && opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
             selectedPlayerCard.takeDamage(opponentAttack);
-            lastRoundResult += "Opponent's " + opponentCard.getName() + " attacks again!\n";
+        }
+
+        //damage boost
+        int PlayerBoostAttack = (int) Math.round(selectedPlayerCard.getAttack() * 1.2);
+        int OpponentBoostAttack = (int) Math.round(opponentCard.getAttack() * 1.2);
+
+        if (selectedPlayerCard instanceof DamageBoostDecorator && selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
+            opponentCard.takeDamage(PlayerBoostAttack);
+        }
+        if (opponentCard instanceof DamageBoostDecorator && opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
+            selectedPlayerCard.takeDamage(OpponentBoostAttack);
         }
 
         // Check for revive ability
         if (selectedPlayerCard.getHealth() <= 0 && selectedPlayerCard instanceof ReviveDecorator) {
             ((ReviveDecorator) selectedPlayerCard).revive();
-            lastRoundResult += selectedPlayerCard.getName() + " revives with full HP!\n";
         }
         if (opponentCard.getHealth() <= 0 && opponentCard instanceof ReviveDecorator) {
             ((ReviveDecorator) opponentCard).revive();
-            lastRoundResult += opponentCard.getName() + " revives with full HP!\n";
         }
 
         if (selectedPlayerCard.getHealth() <= 0 && opponentCard.getHealth() <= 0) {
-            lastRoundResult += "It's a tie! Both cards are eliminated.\n";
             opponentIndex++;
-        } else if (selectedPlayerCard.getHealth() <= 0) {
-            lastRoundResult += "Opponent's " + opponentCard.getName() + " wins the round!\n";
         } else if (opponentCard.getHealth() <= 0) {
-            lastRoundResult += "Player's " + selectedPlayerCard.getName() + " wins the round!\n";
             opponentIndex++;
-        } else {
-            lastRoundResult += "Both cards survived the round!\n";
         }
-
         return opponentIndex >= opponentDeck.size();
     }
 
