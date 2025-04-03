@@ -158,8 +158,8 @@ public class CardRenderer {
         }
 
         //explosion
-        if (card instanceof TripleSliceDecorator){
-            TripleSliceDecorator attack = (TripleSliceDecorator) card;
+        if (card instanceof ExplosionDecorator){
+            ExplosionDecorator attack = (ExplosionDecorator) card;
             g2d.setFont(new Font("Arial", Font.BOLD, 12));
             g2d.drawString("ABILITY", 10, 100);
 
@@ -253,6 +253,61 @@ public class CardRenderer {
 
             g2d.setFont(new Font("Arial", Font.PLAIN, 12));
             String ReviveText = ("Doubles the card's attack if its attack is lower than the opponent's");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Healer
+        if (card instanceof HealerDecorator){
+            HealerDecorator attack = (HealerDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Heals 1 HP every turn");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Life Steal
+        if (card instanceof LifeStealDecorator){
+            LifeStealDecorator attack = (LifeStealDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Steals 20% of the damage dealt as healing");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Thorns
+        if (card instanceof ThornsDecorator){
+            ThornsDecorator attack = (ThornsDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("When this card takes damage, it deals 25% of that damage back");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //Fury
+        if (card instanceof FuryDecorator){
+            FuryDecorator attack = (FuryDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Gains +3 attack if its health is above 50%.");
+            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+        }
+
+        //BattleHardened
+        if (card instanceof BattleHardenedDecorator){
+            BattleHardenedDecorator attack = (BattleHardenedDecorator) card;
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            g2d.drawString("ABILITY", 10, 100);
+
+            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+            String ReviveText = ("Gains +1 attack after each successful hit.");
             drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
         }
     }

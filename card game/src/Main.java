@@ -174,8 +174,8 @@ public class Main extends JFrame {
     }
 
     public void openPack() {
-        PackType packType = PackType.NORMAL;
-        Pack pack = PackFactory.createPack(packType);
+        // Enforce factory usage.
+        Pack pack = PackFactory.createPack(PackType.NORMAL);
         java.util.List<ICard> newCards = pack.openPack();
         inventory.addCards(newCards);
         new PackOpeningGUI(newCards);

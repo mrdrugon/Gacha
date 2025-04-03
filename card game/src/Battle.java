@@ -68,6 +68,27 @@ public class Battle {
 
         currentOpponentCard = opponentCard;
 
+        //healer
+        if (selectedPlayerCard instanceof HealerDecorator){
+            ((HealerDecorator) selectedPlayerCard).applyTurnEffect();
+        }
+        if (opponentCard instanceof HealerDecorator){
+            ((HealerDecorator) opponentCard).applyTurnEffect();
+        }
+
+        //lifeSteal
+        if (selectedPlayerCard instanceof LifeStealDecorator) {
+            ((LifeStealDecorator) selectedPlayerCard).attack(opponentCard);
+        } else {
+            opponentCard.takeDamage(selectedPlayerCard.getAttack());
+        }
+
+        if (opponentCard instanceof LifeStealDecorator) {
+            ((LifeStealDecorator) opponentCard).attack(selectedPlayerCard);
+        } else {
+            selectedPlayerCard.takeDamage(opponentCard.getAttack());
+        }
+
         // Check if player card has SelfObserve ability
         if (selectedPlayerCard instanceof SelfObserveDecorator) {
             playerAttack = selectedPlayerCard.getAttack(); // Ensures attack is recalculated
