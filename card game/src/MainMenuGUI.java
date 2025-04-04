@@ -25,32 +25,32 @@ public class MainMenuGUI extends JPanel {
         add(currencyLabel);
 
         // Load Images
-        ImageIcon battleIcon = resizeImage("card game/cards/Battle.png", 400, 400);
-        ImageIcon inventoryIcon = resizeImage("card game/cards/Battle.png", 200, 80);
-        ImageIcon storeIcon = resizeImage("card game/cards/Battle.png", 200, 80);
-        ImageIcon exitIcon = resizeImage("card game/cards/Battle.png", 200, 80);
+        ImageIcon battleIcon = resizeImage("card game/cards/Battle.png", 700, 700);
+        ImageIcon inventoryIcon = resizeImage("card game/cards/Inventory.png", 200, 200);
+        ImageIcon storeIcon = resizeImage("card game/cards/Store.png", 200, 200);
+        ImageIcon exitIcon = resizeImage("card game/cards/Battle.png", 200, 200);
 
         // Battle Button (Large)
         battleButton = new JButton("BATTLE", battleIcon);
-        battleButton.setBounds(550, 200, 400, 400);
+        battleButton.setBounds(250, 200, 700, 700);
         styleButton(battleButton, 60);
         add(battleButton);
 
         // Inventory Button
         inventoryButton = new JButton("INVENTORY", inventoryIcon);
-        inventoryButton.setBounds(1100, 250, 200, 80);
+        inventoryButton.setBounds(1100, 200, 200, 200);
         styleButton(inventoryButton, 20);
         add(inventoryButton);
 
         // Store Button
         storeButton = new JButton("STORE", storeIcon);
-        storeButton.setBounds(1100, 350, 200, 80);
+        storeButton.setBounds(1100, 450, 200, 200);
         styleButton(storeButton, 20);
         add(storeButton);
 
         // Exit Button
         exitButton = new JButton("EXIT", exitIcon);
-        exitButton.setBounds(1100, 450, 200, 80);
+        exitButton.setBounds(1100, 700, 200, 200);
         styleButton(exitButton, 20);
         add(exitButton);
 
