@@ -1,6 +1,5 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.function.Function;
 
 final class NormalPack implements Pack {
     private static final Random rand = new Random();
@@ -13,6 +12,7 @@ final class NormalPack implements Pack {
             new BasicCard("Yellow", 8, 5, "Common"),
             new BasicCard("Purple", 3, 1, "Common"),
             new BasicCard("Orange", 5, 6, "Common"),
+
             new BasicCard("Crimson", 8, 6, "Common"),
             new BasicCard("Rose", 2, 4, "Common"),
             new BasicCard("Aqua", 5, 5, "Common"),
@@ -38,6 +38,11 @@ final class NormalPack implements Pack {
     private static final int COMMON_CHANCE = 900;  // 90%
     private static final int RARE_CHANCE = 990;
 
+    private static final Map<String, Function<ICard, ICard>> ABILITY_MAP = new HashMap<>();
+
+    static {
+    }
+
     public List<ICard> openPack() {
         List<ICard> pack = new ArrayList<>();
 
@@ -52,6 +57,12 @@ final class NormalPack implements Pack {
             } else {
                 card = createNewCard(LEGENDARY_CARDS);
             }
+
+            // Check if the card has an assigned ability
+            if (ABILITY_MAP.containsKey(card.getName())) {
+                card = ABILITY_MAP.get(card.getName()).apply(card);
+            }
+
             pack.add(card);
         }
         return pack;

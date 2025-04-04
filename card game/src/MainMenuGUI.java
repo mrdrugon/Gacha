@@ -1,6 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.net.URL;
+import java.awt.geom.RoundRectangle2D;
 
 public class MainMenuGUI extends JPanel {
     private JLabel playerNameLabel;
@@ -12,67 +12,47 @@ public class MainMenuGUI extends JPanel {
     private JTextArea logArea;
 
     public MainMenuGUI(String playerName, Main mainFrame) {
-        setLayout(new BorderLayout());
-        setOpaque(false);
+        setLayout(null);
 
-        // TOP PANEL: Player Name (left) and Currency (right)
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setOpaque(false);
-        playerNameLabel = new JLabel(playerName);
-        playerNameLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        playerNameLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // Player Name Label (Top Left)
+        playerNameLabel = new JLabel("Player: " + playerName);
+        playerNameLabel.setBounds(50, 20, 200, 40);
+        add(playerNameLabel);
 
+        // Currency Label
         currencyLabel = new JLabel("Currency: " + mainFrame.getPlayerPoints());
-        currencyLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        currencyLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        currencyLabel.setBounds(1400, 20, 200, 40);
+        add(currencyLabel);
 
-        topPanel.add(playerNameLabel, BorderLayout.WEST);
-        topPanel.add(currencyLabel, BorderLayout.EAST);
-        add(topPanel, BorderLayout.NORTH);
+        // Load Images
+        ImageIcon battleIcon = resizeImage("card game/cards/Battle.png", 400, 400);
+        ImageIcon inventoryIcon = resizeImage("card game/cards/Battle.png", 200, 80);
+        ImageIcon storeIcon = resizeImage("card game/cards/Battle.png", 200, 80);
+        ImageIcon exitIcon = resizeImage("card game/cards/Battle.png", 200, 80);
 
-        // CENTER PANEL: Battle button with example.png image
-        JPanel centerPanel = new JPanel();
-        centerPanel.setOpaque(false);
+        // Battle Button (Large)
+        battleButton = new JButton("BATTLE", battleIcon);
+        battleButton.setBounds(550, 200, 400, 400);
+        styleButton(battleButton, 60);
+        add(battleButton);
 
-        // Load image from classpath using getResource()
-        ImageIcon battleIcon = null;
-        URL imgURL = getClass().getResource("/example.png");
-        if (imgURL != null) {
-            battleIcon = new ImageIcon(imgURL);
-            // Scale the image to desired dimensions (e.g., 400x400)
-            Image scaledImage = battleIcon.getImage().getScaledInstance(400, 400, Image.SCALE_SMOOTH);
-            battleIcon = new ImageIcon(scaledImage);
-        } else {
-            System.err.println("Could not find file: example.png");
-            battleIcon = new ImageIcon();
-        }
+        // Inventory Button
+        inventoryButton = new JButton("INVENTORY", inventoryIcon);
+        inventoryButton.setBounds(1100, 250, 200, 80);
+        styleButton(inventoryButton, 20);
+        add(inventoryButton);
 
-        battleButton = new JButton(battleIcon);
-        battleButton.setBorderPainted(false);
-        battleButton.setFocusPainted(false);
-        battleButton.setContentAreaFilled(false);
-        battleButton.addActionListener(e -> mainFrame.startBattle());
-        centerPanel.add(battleButton);
-        add(centerPanel, BorderLayout.CENTER);
+        // Store Button
+        storeButton = new JButton("STORE", storeIcon);
+        storeButton.setBounds(1100, 350, 200, 80);
+        styleButton(storeButton, 20);
+        add(storeButton);
 
-        // RIGHT PANEL: Inventory, Store, and Exit buttons
-        JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-        rightPanel.setOpaque(false);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-
-        inventoryButton = createStyledButton("INVENTORY", new Dimension(180, 80), 20);
-        storeButton = createStyledButton("STORE", new Dimension(180, 80), 20);
-        exitButton = createStyledButton("EXIT", new Dimension(180, 80), 20);
-
-        rightPanel.add(Box.createVerticalGlue());
-        rightPanel.add(inventoryButton);
-        rightPanel.add(Box.createVerticalStrut(20));
-        rightPanel.add(storeButton);
-        rightPanel.add(Box.createVerticalStrut(20));
-        rightPanel.add(exitButton);
-        rightPanel.add(Box.createVerticalGlue());
-        add(rightPanel, BorderLayout.EAST);
+        // Exit Button
+        exitButton = new JButton("EXIT", exitIcon);
+        exitButton.setBounds(1100, 450, 200, 80);
+        styleButton(exitButton, 20);
+        add(exitButton);
 
         // LOG AREA at the bottom
         logArea = new JTextArea();
@@ -82,6 +62,7 @@ public class MainMenuGUI extends JPanel {
         add(logScroll, BorderLayout.SOUTH);
 
         // Button listeners for additional functionality
+        battleButton.addActionListener(e -> mainFrame.startBattle());
         inventoryButton.addActionListener(e -> mainFrame.openInventory());
         storeButton.addActionListener(e -> new ShopGUI(mainFrame));
         exitButton.addActionListener(e -> System.exit(0));
@@ -90,15 +71,21 @@ public class MainMenuGUI extends JPanel {
         mainFrame.setLogArea(logArea);
     }
 
-    private JButton createStyledButton(String text, Dimension size, int fontSize) {
-        JButton button = new JButton(text);
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        button.setPreferredSize(size);
-        button.setMaximumSize(size);
-        button.setFont(new Font("Arial", Font.BOLD, fontSize));
-        button.setBackground(Color.WHITE);
+    // Function to Resize Images
+    private ImageIcon resizeImage(String path, int width, int height) {
+        ImageIcon icon = new ImageIcon(path);
+        Image scaledImage = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaledImage);
+    }
+
+    // Function to Style Buttons
+    private void styleButton(JButton button, int fontSize) {
+        button.setHorizontalTextPosition(JButton.CENTER);
+        button.setFont(new Font("AniMe Matrix - MB_EN", Font.BOLD, fontSize));
+        button.setForeground(Color.WHITE);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
         button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3));
-        return button;
     }
 }
+

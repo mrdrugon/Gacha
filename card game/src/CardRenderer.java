@@ -13,6 +13,12 @@ public class CardRenderer {
     private static BufferedImage brassTexture;
     private static BufferedImage platinumTexture;
 
+    private static BufferedImage gemTexture;
+    private static BufferedImage rubyTexture;
+    private static BufferedImage sapphireTexture;
+    private static BufferedImage emeraldTexture;
+    private static BufferedImage amethystTexture;
+
     static {
         loadTexture(); // Load textures once
     }
@@ -20,11 +26,17 @@ public class CardRenderer {
     private static void loadTexture() {
         try {
             metallicTexture = ImageIO.read(new File("card game/cards/metallicTexture.png"));
-            goldTexture = applyTint(metallicTexture, new Color(255, 215, 0, 80));
-            silverTexture = applyTint(metallicTexture, new Color(100, 100, 100, 50));
-            copperTexture = applyTint(metallicTexture, new Color(198,131,70, 80));
-            brassTexture = applyTint(metallicTexture, new Color(181,166,66, 80));
-            platinumTexture = applyTint(metallicTexture, new Color(217, 217, 217, 50));
+            goldTexture = applyMetallicTint(metallicTexture, new Color(255, 215, 0, 80));
+            silverTexture = applyMetallicTint(metallicTexture, new Color(100, 100, 100, 50));
+            copperTexture = applyMetallicTint(metallicTexture, new Color(198,131,70, 80));
+            brassTexture = applyMetallicTint(metallicTexture, new Color(181,166,66, 80));
+            platinumTexture = applyMetallicTint(metallicTexture, new Color(217, 217, 217, 50));
+
+            gemTexture = ImageIO.read(new File("card game/cards/gemTexture.jpg"));
+            sapphireTexture = applyGemTint(gemTexture, new Color(15,82,186, 80));
+            rubyTexture = applyGemTint(gemTexture, new Color(224,17,95, 80));
+            emeraldTexture = applyGemTint(gemTexture, new Color(80,200,120, 80));
+            amethystTexture = applyGemTint(gemTexture, new Color(153,102,204, 80));
         } catch (IOException e) {
             metallicTexture = null;
             goldTexture = null;
@@ -32,6 +44,12 @@ public class CardRenderer {
             copperTexture = null;
             brassTexture = null;
             platinumTexture = null;
+
+            gemTexture = null;
+            sapphireTexture = null;
+            rubyTexture = null;
+            emeraldTexture = null;
+            amethystTexture = null;
         }
     }
 
@@ -59,6 +77,18 @@ public class CardRenderer {
                 g2d.drawImage(brassTexture, 0, 0, width, height, null);
             } else if (card.getName().equals("Platinum") && platinumTexture != null) {
                 g2d.drawImage(platinumTexture, 0, 0, width, height, null);
+            }
+        }
+
+        if (gemTexture != null) {
+            if (card.getName().equals("Sapphire") && sapphireTexture != null) {
+                g2d.drawImage(sapphireTexture, 0, 0, width, height, null);
+            } else if (card.getName().equals("Ruby") && rubyTexture != null) {
+                g2d.drawImage(rubyTexture, 0, 0, width, height, null);
+            } else if (card.getName().equals("Emerald") && emeraldTexture != null) {
+                g2d.drawImage(emeraldTexture, 0, 0, width, height, null);
+            } else if (card.getName().equals("Amethyst") && amethystTexture != null) {
+                g2d.drawImage(amethystTexture, 0, 0, width, height, null);
             }
         }
 
@@ -331,7 +361,18 @@ public class CardRenderer {
         g2d.drawString(line.toString(), x, currentY);
     }
 
-    private static BufferedImage applyTint(BufferedImage image, Color tint) {
+    private static BufferedImage applyMetallicTint(BufferedImage image, Color tint) {
+        BufferedImage tinted = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TRANSLUCENT);
+        Graphics2D g2d = tinted.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+        g2d.setColor(tint);
+        g2d.setComposite(AlphaComposite.SrcOver);
+        g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g2d.dispose();
+        return tinted;
+    }
+
+    private static BufferedImage applyGemTint(BufferedImage image, Color tint) {
         BufferedImage tinted = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TRANSLUCENT);
         Graphics2D g2d = tinted.createGraphics();
         g2d.drawImage(image, 0, 0, null);

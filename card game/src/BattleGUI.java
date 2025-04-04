@@ -53,14 +53,15 @@ public class BattleGUI {
     private void updatePlayerDeckUI() {
         playerDeckPanel.removeAll();
         cardButtonsMap.clear();
+        deadCardsIds.clear();
 
         int xOffset = 100;
         int cardWidth = 80;
         int cardHeight = 120;
 
         List<ICard> aliveCards = new ArrayList<>();
-        for (ICard card : playerDeck){
-            if (card.getHealth() > 0){
+        for (ICard card : playerDeck) {
+            if (card.getHealth() > 0) {
                 aliveCards.add(card);
             }
         }
@@ -94,7 +95,6 @@ public class BattleGUI {
             return;
         }
 
-        // Make sure the card is selected before the round starts
         if (!battle.playerSelectedCard(selectedCard)) {
             log("Failed to select the card!");
             return;
@@ -108,22 +108,17 @@ public class BattleGUI {
 
         BattlePanel battlePanel = new BattlePanel();
 
-        // Set the cards for the battle
         CardPanel playerCardPanel = new CardPanel(selectedCard);
         CardPanel opponentCardPanel = new CardPanel(opponentCard);
         BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
 
-        // Add the battle panel to the frame
         frame.getContentPane().add(battlePanel, BorderLayout.CENTER);
         frame.revalidate();
         frame.repaint();
 
-        // Schedule the animation in the Event Dispatch Thread (EDT) for smooth UI updates
         SwingUtilities.invokeLater(() -> {
             animateBattle(playerCardPanel, opponentCardPanel, () -> {
-                // Proceed to the next round after the animation
-                boolean battleOver = battle.playNextRound(selectedCard);
-
+                boolean battleOver = battle.playNextRound();
                 updatePlayerDeckUI();
                 checkForBattleEnd();
 
@@ -137,56 +132,55 @@ public class BattleGUI {
         });
     }
 
+    /**
+     * Updated animateBattle method:
+     * - Calls onComplete only once in the final timer (hideCards).
+     * - Removed duplicate onComplete.run() from completeTimer.
+     */
     private void animateBattle(CardPanel playerCard, CardPanel opponentCard, Runnable onComplete) {
-        int moveDistance = 160; // Distance the cards move forward/backward
-        int shakeDistance = 10; // Shake distance
-        int shakeDuration = 100; // Shake duration in milliseconds
-        int animationDuration = 400;// Total duration for player moving
+        int moveDistance = 160;      // Distance cards move forward/backward
+        int shakeDistance = 10;      // Shake distance
+        int shakeDuration = 100;     // Shake duration in milliseconds
+        int animationDuration = 400; // Duration for the move forward
 
         playerCard.setShowHealthBar(true);
         opponentCard.setShowHealthBar(true);
 
-        Timer completeTimer = new Timer(1200, e ->{
+        // Timer for hiding health bars (no onComplete call here).
+        Timer completeTimer = new Timer(1200, e -> {
             playerCard.setShowHealthBar(false);
             opponentCard.setShowHealthBar(false);
-            onComplete.run();
         });
         completeTimer.setRepeats(false);
         completeTimer.start();
 
         Container parent = playerCard.getParent();
-        parent.setLayout(null); // Ensure absolute positioning
+        parent.setLayout(null);
 
-        // Set initial positions for player and opponent cards with enough gap
-        Point playerStart = new Point(100, 100); // Start position of the player
-        Point opponentStart = new Point(500, 100); // Start position of the opponent
-
+        // Initial positions.
+        Point playerStart = new Point(100, 100);
+        Point opponentStart = new Point(500, 100);
         playerCard.setBounds(playerStart.x, playerStart.y, playerCard.getWidth(), playerCard.getHeight());
         opponentCard.setBounds(opponentStart.x, opponentStart.y, opponentCard.getWidth(), opponentCard.getHeight());
 
-        // Save initial positions
-        Point playerMoveForward = new Point(playerStart.x + moveDistance, playerStart.y); // Player moves forward
-        Point OpponentMoveForward = new Point(opponentStart.x - moveDistance, opponentStart.y);
-        Point playerMoveBack = new Point(playerStart.x, playerStart.y); // Player moves back to original position
-        Point OpponentMoveBack = new Point(opponentStart.x, opponentStart.y);
+        // Positions for movement.
+        Point playerMoveForward = new Point(playerStart.x + moveDistance, playerStart.y);
+        Point opponentMoveForward = new Point(opponentStart.x - moveDistance, opponentStart.y);
+        Point playerMoveBack = new Point(playerStart.x, playerStart.y);
+        Point opponentMoveBack = new Point(opponentStart.x, opponentStart.y);
 
-
-
-        // Shake animation for cards
+        // Shake animation.
         Timer shakeOpponent = new Timer(shakeDuration, e -> {
             int opponentX = opponentCard.getLocation().x;
             int opponentY = opponentCard.getLocation().y;
-
             int playerX = playerCard.getLocation().x;
             int playerY = playerCard.getLocation().y;
 
-            // Shake cards left and right by a small amount
             opponentCard.setBounds(opponentX - shakeDistance, opponentY, opponentCard.getWidth(), opponentCard.getHeight());
             playerCard.setBounds(playerX - shakeDistance, playerY, playerCard.getWidth(), playerCard.getHeight());
-            parent.revalidate();  // Revalidate the parent to update the layout
-            parent.repaint();  // Repaint the parent to reflect the changes
+            parent.revalidate();
+            parent.repaint();
 
-            // After shake, move back to original position
             Timer returnOpponent = new Timer(shakeDuration, event -> {
                 opponentCard.setBounds(opponentX + shakeDistance, opponentY, opponentCard.getWidth(), opponentCard.getHeight());
                 playerCard.setBounds(playerX + shakeDistance, playerY, playerCard.getWidth(), playerCard.getHeight());
@@ -198,40 +192,38 @@ public class BattleGUI {
         });
         shakeOpponent.setRepeats(false);
 
-        // Step 1: Cards moves forward
+        // Move cards forward.
         Timer playerMoveForwardTimer = new Timer(animationDuration, e -> {
             playerCard.setBounds(playerMoveForward.x, playerMoveForward.y, playerCard.getWidth(), playerCard.getHeight());
-            opponentCard.setBounds(OpponentMoveForward.x, OpponentMoveForward.y, opponentCard.getWidth(), opponentCard.getHeight());
-            parent.revalidate();  // Revalidate the parent to update the layout
-            parent.repaint();  // Repaint the parent to reflect the changes
-
-            // Step 2: Opponent shakes after player moves forward
+            opponentCard.setBounds(opponentMoveForward.x, opponentMoveForward.y, opponentCard.getWidth(), opponentCard.getHeight());
+            parent.revalidate();
+            parent.repaint();
             shakeOpponent.start();
         });
         playerMoveForwardTimer.setRepeats(false);
         playerMoveForwardTimer.start();
 
-        // Step 3: Cards moves back after shaking
+        // Move cards back.
         Timer playerMoveBackTimer = new Timer(animationDuration * 2, e -> {
             playerCard.setBounds(playerMoveBack.x, playerMoveBack.y, playerCard.getWidth(), playerCard.getHeight());
-            opponentCard.setBounds(OpponentMoveBack.x, OpponentMoveBack.y,opponentCard.getWidth(), opponentCard.getHeight());
-            parent.revalidate();  // Revalidate the parent to update the layout
-            parent.repaint();  // Repaint the parent to reflect the changes
+            opponentCard.setBounds(opponentMoveBack.x, opponentMoveBack.y, opponentCard.getWidth(), opponentCard.getHeight());
+            parent.revalidate();
+            parent.repaint();
         });
-
         playerMoveBackTimer.setRepeats(false);
-        playerMoveBackTimer.setInitialDelay(animationDuration * 2); // Start after card moves back
+        playerMoveBackTimer.setInitialDelay(animationDuration * 2);
         playerMoveBackTimer.start();
 
+        // Final timer: hide cards and complete the animation.
         Timer hideCards = new Timer(1500, e -> {
             playerCard.setVisible(false);
             opponentCard.setVisible(false);
-            parent.revalidate();  // Revalidate the parent to update the layout
-            parent.repaint();  // Repaint the parent to reflect the changes
-            onComplete.run(); // Call the onComplete action
+            parent.revalidate();
+            parent.repaint();
+            onComplete.run();
         });
         hideCards.setRepeats(false);
-        hideCards.setInitialDelay(1500); // Wait until after the full animation is done
+        hideCards.setInitialDelay(1500);
         hideCards.start();
     }
 
@@ -275,7 +267,7 @@ public class BattleGUI {
 
     private void resetPlayerCards() {
         for (ICard card : playerDeck) {
-            if (card instanceof ReviveDecorator){
+            if (card instanceof ReviveDecorator) {
                 ((ReviveDecorator) card).revived = false;
             }
             card.resetHealth();
@@ -287,6 +279,7 @@ public class BattleGUI {
         battleLog.setCaretPosition(battleLog.getDocument().getLength());
     }
 
+    // Custom JPanel to render a card.
     public class CardPanel extends JPanel {
         private final ICard card;
         private boolean showHealthBar = false;
@@ -297,7 +290,7 @@ public class BattleGUI {
             setOpaque(false);
         }
 
-        public void setShowHealthBar(boolean show){
+        public void setShowHealthBar(boolean show) {
             this.showHealthBar = show;
             repaint();
         }
@@ -308,31 +301,29 @@ public class BattleGUI {
             Graphics2D g2d = (Graphics2D) g;
             CardRenderer.renderCard(g2d, card, getWidth(), getHeight() - 20);
 
-            if (showHealthBar){
-                int batHeight = 10;
+            if (showHealthBar) {
+                int barHeight = 10;
                 int barWidth = (int) ((card.getHealth() / (double) card.getOriginalHealth()) * getWidth());
-                int barY = getHeight() - batHeight;
+                int barY = getHeight() - barHeight;
 
                 g2d.setColor(Color.RED);
-                g2d.fillRect(0, barY, barWidth, batHeight);
+                g2d.fillRect(0, barY, barWidth, barHeight);
 
                 g2d.setColor(Color.WHITE);
-                g2d.setFont(new Font("Arial", Font.BOLD , 10));
-                g2d.drawString(card.getHealth() + "/"+card.getOriginalHealth(), 5, barY + 8);
+                g2d.setFont(new Font("Arial", Font.BOLD, 10));
+                g2d.drawString(card.getHealth() + "/" + card.getOriginalHealth(), 5, barY + 8);
             }
         }
     }
 
+    // Panel used during a battle round to display both cards.
     public class BattlePanel extends JPanel {
         private CardPanel playerCardPanel;
         private CardPanel opponentCardPanel;
 
-        // Static method to set the cards
         public static void setCards(BattlePanel battlePanel, CardPanel playerCard, CardPanel opponentCard) {
-            // Set player and opponent cards on the panel
             battlePanel.playerCardPanel = playerCard;
             battlePanel.opponentCardPanel = opponentCard;
-
             battlePanel.add(playerCard);
             battlePanel.add(opponentCard);
             battlePanel.revalidate();
@@ -342,7 +333,6 @@ public class BattleGUI {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            // Custom rendering logic (optional)
         }
     }
 }
