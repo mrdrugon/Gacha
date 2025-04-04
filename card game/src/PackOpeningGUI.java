@@ -1,25 +1,26 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public class PackOpeningGUI extends JFrame {
     private JPanel panel;
     private JLabel displayLabel;
     private Timer timer;
-    private List<ICard> cards; // Changed from List<Card> to List<ICard>
+    private List<ICard> cards;
     private int cardIndex = 0;
     private boolean packOpened = false;
     private boolean showingFinalScreen = false;
     private ImageIcon packIcon;
 
-    public PackOpeningGUI(List<ICard> cards) { // Parameter now List<ICard>
+    public PackOpeningGUI(List<ICard> cards) {
         this.cards = cards;
         setTitle("Pack Opening");
-        setSize(300, 500);
+        setSize(400, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -64,6 +65,7 @@ public class PackOpeningGUI extends JFrame {
         packOpened = true;
         panel.removeAll();
         JLabel openingLabel = new JLabel("Opening...", JLabel.CENTER);
+        openingLabel.setFont(new Font("Arial", Font.BOLD, 24));
         panel.add(openingLabel, BorderLayout.CENTER);
         panel.revalidate();
         panel.repaint();
@@ -82,13 +84,24 @@ public class PackOpeningGUI extends JFrame {
             panel.removeAll();
 
             JPanel cardPanel = new JPanel();
-            cardPanel.setBackground(getCardColor(card));
-            cardPanel.setPreferredSize(new Dimension(100, 150));
+            cardPanel.setPreferredSize(new Dimension(150, 200));
             cardPanel.setLayout(new BorderLayout());
 
-            JLabel cardLabel = new JLabel(card.getName(), JLabel.CENTER);
-            cardLabel.setForeground(Color.WHITE);
-            cardLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            // Load the Rarity Effect Image
+            BufferedImage rarityEffect = loadRarityEffect(card.getRarity(), 150, 200);
+
+            // Create an image buffer for the card with the rarity effect
+            BufferedImage cardImage = new BufferedImage(150, 200, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = cardImage.createGraphics();
+
+            // Draw the rarity effect first
+            g2d.drawImage(rarityEffect, 0, 0, null);
+
+            // Render the card on top
+            CardRenderer.renderCard(g2d, card, 150, 200);
+            g2d.dispose();
+
+            JLabel cardLabel = new JLabel(new ImageIcon(cardImage));
             cardPanel.add(cardLabel, BorderLayout.CENTER);
 
             panel.add(cardPanel, BorderLayout.CENTER);
@@ -116,14 +129,41 @@ public class PackOpeningGUI extends JFrame {
 
         for (ICard card : cards) {
             JPanel cardPanel = new JPanel();
-            cardPanel.setBackground(getCardColor(card));
             cardPanel.setPreferredSize(new Dimension(100, 150));
             cardPanel.setLayout(new BorderLayout());
 
-            JLabel cardLabel = new JLabel(card.getName(), JLabel.CENTER);
-            cardLabel.setForeground(Color.WHITE);
-            cardLabel.setFont(new Font("Arial", Font.BOLD, 12));
+            // Create an image buffer and render the card onto it
+            BufferedImage cardImage = new BufferedImage(100, 150, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = cardImage.createGraphics();
+            CardRenderer.renderCard(g2d, card, 100, 150);
+            g2d.dispose();
+
+            JLabel cardLabel = new JLabel(new ImageIcon(cardImage));
             cardPanel.add(cardLabel, BorderLayout.CENTER);
+
+
+            // Hover Effect for Zooming In
+            cardLabel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    BufferedImage zoomedImage = new BufferedImage(120, 170, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g2d = zoomedImage.createGraphics();
+                    CardRenderer.renderCard(g2d, card, 120, 170);
+                    g2d.dispose();
+                    cardLabel.setIcon(new ImageIcon(zoomedImage));
+                    cardPanel.revalidate();
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    BufferedImage normalImage = new BufferedImage(100, 150, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g2d = normalImage.createGraphics();
+                    CardRenderer.renderCard(g2d, card, 100, 150);
+                    g2d.dispose();
+                    cardLabel.setIcon(new ImageIcon(normalImage));
+                    cardPanel.revalidate();
+                }
+            });
 
             finalPanel.add(cardPanel);
         }
@@ -133,35 +173,21 @@ public class PackOpeningGUI extends JFrame {
         panel.repaint();
     }
 
-    private Color getCardColor(ICard card) {
-        switch (card.getName()) {
-            case "Red": return Color.RED;
-            case "Blue": return Color.BLUE;
-            case "Green": return Color.GREEN;
-            case "Yellow": return Color.YELLOW;
-            case "Orange": return Color.ORANGE;
-            case "Pink": return Color.PINK;
-            case "Purple": return new Color(157,0,255);
-            case "Crimson": return new Color(178,34,34);
-            case "Rose": return new Color(250,0,63);
-            case "Aqua": return new Color(0,255,240);
-            case "Violet": return new Color(127,0,255);
-            case "Coral": return new Color(255,133,89);
-            case "Cyan": return new Color(0,255,255);
-            case "Flamingo": return new Color(252,142,172);
+    private BufferedImage loadRarityEffect(String rarity, int width, int height) {
+        try {
+            BufferedImage effect = ImageIO.read(new File("card game/cards/RarityEffect.png")); // Update with actual path
+            System.out.println("Loaded Rarity Effect Size: " + effect.getWidth() + "x" + effect.getHeight());
 
-            case "Copper": return new Color(198,131,70);
-            case "Brass": return new Color(181,166,66);
-            case "Platinum": return new Color(217,217,217);
-            case "Silver": return new Color(192, 192, 192);
-            case "Gold": return new Color(255, 215, 0);
+            BufferedImage resizedEffect = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = resizedEffect.createGraphics();
+            g2d.drawImage(effect.getScaledInstance(width, height, Image.SCALE_SMOOTH), 0, 0, null);
 
-            case "Sapphire": return new Color(15,82,186);
-            case "Ruby": return new Color(224,17,95);
-            case "Emerald": return new Color(80,200,120);
-            case "Amethyst": return new Color(153,102,204);
-            case "Rainbow": return Color.MAGENTA;
-            default: return new Color(100, 100, 100);
+            g2d.dispose();
+            return resizedEffect;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         }
+
     }
 }
