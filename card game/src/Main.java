@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.util.Random;
 
 public class Main extends JFrame {
     private CardLayout cardLayout;
@@ -17,9 +16,8 @@ public class Main extends JFrame {
         setTitle("Gacha Card Game");
         setSize(600, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-
-
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setUndecorated(true);
 
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
@@ -138,7 +136,8 @@ public class Main extends JFrame {
                 mainMenu = new MainMenuGUI(username, this);
                 cardPanel.add(mainMenu, "mainMenu");
 
-                cardLayout.show(cardPanel, "mainMenu");  // Switch to main menu
+                cardLayout.show(cardPanel, "mainMenu");// Switch to main menu
+                openPack();
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid login", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -173,7 +172,7 @@ public class Main extends JFrame {
         return panel;
     }
 
-    public void openPack() {
+    private void openPack() {
         // Enforce factory usage.
         Pack pack = PackFactory.createPack(PackType.NORMAL);
         java.util.List<ICard> newCards = pack.openPack();

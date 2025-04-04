@@ -68,7 +68,7 @@ public class Battle {
 
         currentOpponentCard = opponentCard;
 
-        //healer
+      /*  //healer
         if (selectedPlayerCard instanceof HealerDecorator){
             ((HealerDecorator) selectedPlayerCard).applyTurnEffect();
         }
@@ -201,6 +201,7 @@ public class Battle {
             opponentIndex++;
         }
 
+       */
         selectedPlayerCard.takeDamage(opponentAttack);
         opponentCard.takeDamage(playerAttack);
 

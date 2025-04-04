@@ -141,7 +141,18 @@ public class BattleGUI {
         int moveDistance = 160; // Distance the cards move forward/backward
         int shakeDistance = 10; // Shake distance
         int shakeDuration = 100; // Shake duration in milliseconds
-        int animationDuration = 400; // Total duration for player moving
+        int animationDuration = 400;// Total duration for player moving
+
+        playerCard.setShowHealthBar(true);
+        opponentCard.setShowHealthBar(true);
+
+        Timer completeTimer = new Timer(1200, e ->{
+            playerCard.setShowHealthBar(false);
+            opponentCard.setShowHealthBar(false);
+            onComplete.run();
+        });
+        completeTimer.setRepeats(false);
+        completeTimer.start();
 
         Container parent = playerCard.getParent();
         parent.setLayout(null); // Ensure absolute positioning
@@ -278,6 +289,7 @@ public class BattleGUI {
 
     public class CardPanel extends JPanel {
         private final ICard card;
+        private boolean showHealthBar = false;
 
         public CardPanel(ICard card) {
             this.card = card;
@@ -285,26 +297,29 @@ public class BattleGUI {
             setOpaque(false);
         }
 
+        public void setShowHealthBar(boolean show){
+            this.showHealthBar = show;
+            repaint();
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
-            CardRenderer.renderCard(g2d, card, getWidth(), getHeight());
+            CardRenderer.renderCard(g2d, card, getWidth(), getHeight() - 20);
 
-            // Draw health bar on top of the card
-            int barHeight = 10;
-            Integer originalHealth = originalHealthMap.get(card.getId());
+            if (showHealthBar){
+                int batHeight = 10;
+                int barWidth = (int) ((card.getHealth() / (double) card.getOriginalHealth()) * getWidth());
+                int barY = getHeight() - batHeight;
 
-            if (originalHealth == null) {
-                // Handle the error (e.g., log an error or use current health as fallback)
-                originalHealth = card.getHealth();  // Fallback to current health
+                g2d.setColor(Color.RED);
+                g2d.fillRect(0, barY, barWidth, batHeight);
+
+                g2d.setColor(Color.WHITE);
+                g2d.setFont(new Font("Arial", Font.BOLD , 10));
+                g2d.drawString(card.getHealth() + "/"+card.getOriginalHealth(), 5, barY + 8);
             }
-
-            int barWidth = (int) ((card.getHealth() / (double) originalHealth) * getWidth());
-            g2d.setColor(Color.RED);
-            g2d.fillRect(0, 0, barWidth, barHeight);  // Health bar
-            g2d.setColor(Color.BLACK);
-            g2d.drawRect(0, 0, getWidth(), barHeight);  // Border around health bar
         }
     }
 
