@@ -7,9 +7,9 @@ public class Battle {
     private List<ICard> opponentDeck;
     private Map<Integer, ICard> playerCardsMap;
     private Map<Integer, ICard> opponentCardsMap;
-    private Map<ICard, Integer> poisendCards;
+    private Map<ICard, Integer> poisonedCards;  // Renamed from poisendCards
     private Map<ICard, Integer> stunnedCards;
-    private static  ICard currentOpponentCard;
+    private static ICard currentOpponentCard;
 
     private int opponentIndex;
     private String lastRoundResult;
@@ -20,15 +20,16 @@ public class Battle {
         this.opponentDeck = opponentDeck;
         this.playerCardsMap = new HashMap<>();
         this.opponentCardsMap = new HashMap<>();
-        this.poisendCards = new HashMap<>();
+        this.poisonedCards = new HashMap<>();
         this.stunnedCards = new HashMap<>();
         this.opponentIndex = 0;
         this.lastRoundResult = "";
 
+        // Map player's cards by their ID.
         for (ICard card : playerDeck) {
             playerCardsMap.put(card.getId(), card);
         }
-
+        // Map opponent's cards by their ID.
         for (ICard card : opponentDeck) {
             opponentCardsMap.put(card.getId(), card);
         }
@@ -39,7 +40,7 @@ public class Battle {
     }
 
     public void addPoisonedCard(ICard card, int poisonDamage){
-        poisendCards.put(card, poisonDamage);
+        poisonedCards.put(card, poisonDamage);
     }
 
     public boolean playerSelectedCard(ICard selectedCard) {
@@ -51,180 +52,57 @@ public class Battle {
         return false;
     }
 
-    public boolean playNextRound(ICard selectedCard) {
+    // Removed the unused parameter; the method now uses the field selectedPlayerCard.
+    public boolean playNextRound() {
+        // Skip over any defeated opponent cards.
         while (opponentIndex < opponentDeck.size() && opponentDeck.get(opponentIndex).getHealth() <= 0) {
             opponentIndex++;
         }
-
         if (opponentIndex >= opponentDeck.size()) {
-            return true;
+            lastRoundResult = "No opponent cards left.";
+            return true;  // Battle over.
         }
 
         ICard opponentCard = getNextOpponentCard();
-        if (opponentCard == null) return true;
+        if (opponentCard == null) {
+            lastRoundResult = "No opponent card available.";
+            return true;
+        }
 
+        // Retrieve attack values.
         int playerAttack = selectedPlayerCard.getAttack();
         int opponentAttack = opponentCard.getAttack();
 
+        // Set current opponent card for abilities that may reference it.
         currentOpponentCard = opponentCard;
 
-      /*  //healer
-        if (selectedPlayerCard instanceof HealerDecorator){
-            ((HealerDecorator) selectedPlayerCard).applyTurnEffect();
-        }
-        if (opponentCard instanceof HealerDecorator){
-            ((HealerDecorator) opponentCard).applyTurnEffect();
-        }
-
-        //lifeSteal
-        if (selectedPlayerCard instanceof LifeStealDecorator) {
-            ((LifeStealDecorator) selectedPlayerCard).attack(opponentCard);
-        } else {
-            opponentCard.takeDamage(selectedPlayerCard.getAttack());
-        }
-
-        if (opponentCard instanceof LifeStealDecorator) {
-            ((LifeStealDecorator) opponentCard).attack(selectedPlayerCard);
-        } else {
-            selectedPlayerCard.takeDamage(opponentCard.getAttack());
-        }
-
-        // Check if player card has SelfObserve ability
-        if (selectedPlayerCard instanceof SelfObserveDecorator) {
-            playerAttack = selectedPlayerCard.getAttack(); // Ensures attack is recalculated
-        }
-
-        // Check if opponent card has SelfObserve ability
-        if (opponentCard instanceof SelfObserveDecorator) {
-            opponentAttack = opponentCard.getAttack();
-        }
-
-        //Apply Poison
-        if (poisendCards.containsKey(opponentCard)){
-            int poisonDmg = poisendCards.get(opponentCard);
-            opponentCard.takeDamage(poisonDmg);
-
-            if (opponentCard.getHealth() <= 0){
-                poisendCards.remove(opponentCard);
-            }
-        }
-
-        if (poisendCards.containsKey(selectedPlayerCard)){
-            int poisonDmg = poisendCards.get(selectedCard);
-            selectedPlayerCard.takeDamage(poisonDmg);
-
-            if (selectedPlayerCard.getHealth() <= 0){
-                poisendCards.remove(selectedPlayerCard);
-            }
-        }
-
-        if (selectedPlayerCard instanceof PoisonAttackDecorator){
-            ((PoisonAttackDecorator) selectedPlayerCard).applyPoisonEffect(this, opponentCard);
-        }
-
-        if (opponentCard instanceof PoisonAttackDecorator){
-            ((PoisonAttackDecorator) opponentCard).applyPoisonEffect(this, selectedPlayerCard);
-        }
-
-        //triple slice
-        if (selectedCard instanceof TripleSliceDecorator){
-            ((TripleSliceDecorator) selectedPlayerCard).attack(opponentCard);
-        } else {
-            opponentCard.takeDamage(playerAttack);
-        }
-
-        if (opponentCard instanceof TripleSliceDecorator){
-            ((TripleSliceDecorator) opponentCard).attack(selectedPlayerCard);
-        } else {
-            selectedPlayerCard.takeDamage(opponentAttack);
-        }
-
-        //stunned
-        if (stunnedCards.containsKey(selectedPlayerCard)){
-            stunnedCards.put(selectedPlayerCard, stunnedCards.get(selectedPlayerCard) - 1);
-            if (stunnedCards.get(selectedPlayerCard) <= 0){
-                stunnedCards.remove(selectedPlayerCard);
-            }
-        } else if (selectedPlayerCard instanceof ExplosionDecorator) {
-            ((ExplosionDecorator) selectedCard).attack(opponentCard);
-            stunnedCards.put(selectedPlayerCard, 1);
-        } else {
-            opponentCard.takeDamage(playerAttack);
-        }
-
-        if (stunnedCards.containsKey(opponentCard)){
-            stunnedCards.put(opponentCard, stunnedCards.get(opponentCard) - 1);
-            if (stunnedCards.get(opponentCard) <= 0){
-                stunnedCards.remove(opponentCard);
-            }
-        } else if (opponentCard instanceof ExplosionDecorator) {
-            ((ExplosionDecorator) opponentCard).attack(selectedPlayerCard);
-            stunnedCards.put(opponentCard, 1);
-        } else {
-            selectedPlayerCard.takeDamage(opponentAttack);
-        }
-
-        //shadow
-        if (selectedPlayerCard instanceof ShadowDecorator){
-            ((ShadowDecorator) selectedPlayerCard).applyShadowEffect(opponentCard);
-        }
-
-        if (opponentCard instanceof ShadowDecorator){
-            ((ShadowDecorator) opponentCard).applyShadowEffect(selectedPlayerCard);
-        }
-
-        //resilient
-        if (selectedPlayerCard instanceof ResilientDecorator){
-            int reducedDamage = ((ResilientDecorator) selectedPlayerCard).reduceDamage(opponentCard.getAttack());
-            selectedPlayerCard.takeDamage(reducedDamage);
-        } else {
-            selectedPlayerCard.takeDamage(opponentCard.getAttack());
-        }
-
-        if (opponentCard instanceof ResilientDecorator){
-            int reducedDamage = ((ResilientDecorator) opponentCard).reduceDamage(selectedPlayerCard.getAttack());
-            opponentCard.takeDamage(reducedDamage);
-        } else {
-            opponentCard.takeDamage(selectedPlayerCard.getAttack());
-        }
-
-        //boost deck ability
-        if (selectedPlayerCard instanceof BoosterDecorator){
-            ((BoosterDecorator) selectedPlayerCard).applyBoost(playerDeck);
-        }
-
-        //steal stats
-        if (opponentCard.getHealth() <= 0){
-            if (selectedPlayerCard instanceof RobberDecorator){
-                ((RobberDecorator) selectedPlayerCard).stealStats(opponentCard);
-            }
-            opponentIndex++;
-        }
-
-       */
+        // Basic damage exchange.
         selectedPlayerCard.takeDamage(opponentAttack);
         opponentCard.takeDamage(playerAttack);
 
-        // Handle double attack ability
-        if (selectedPlayerCard instanceof DoubleAttackDecorator && selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
+        // Handle double attack ability.
+        if (selectedPlayerCard instanceof DoubleAttackDecorator &&
+                selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
             opponentCard.takeDamage(playerAttack);
         }
-        if (opponentCard instanceof DoubleAttackDecorator && opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
+        if (opponentCard instanceof DoubleAttackDecorator &&
+                opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
             selectedPlayerCard.takeDamage(opponentAttack);
         }
 
-        //damage boost
-        int PlayerBoostAttack = (int) Math.round(selectedPlayerCard.getAttack() * 1.2);
-        int OpponentBoostAttack = (int) Math.round(opponentCard.getAttack() * 1.2);
-
-        if (selectedPlayerCard instanceof DamageBoostDecorator && selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
-            opponentCard.takeDamage(PlayerBoostAttack);
+        // Handle damage boost ability.
+        int playerBoostAttack = (int) Math.round(selectedPlayerCard.getAttack() * 1.2);
+        int opponentBoostAttack = (int) Math.round(opponentCard.getAttack() * 1.2);
+        if (selectedPlayerCard instanceof DamageBoostDecorator &&
+                selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
+            opponentCard.takeDamage(playerBoostAttack);
         }
-        if (opponentCard instanceof DamageBoostDecorator && opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
-            selectedPlayerCard.takeDamage(OpponentBoostAttack);
+        if (opponentCard instanceof DamageBoostDecorator &&
+                opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
+            selectedPlayerCard.takeDamage(opponentBoostAttack);
         }
 
-        // Check for revive ability
+        // Handle revive ability.
         if (selectedPlayerCard.getHealth() <= 0 && selectedPlayerCard instanceof ReviveDecorator) {
             ((ReviveDecorator) selectedPlayerCard).revive();
         }
@@ -232,11 +110,16 @@ public class Battle {
             ((ReviveDecorator) opponentCard).revive();
         }
 
-        if (selectedPlayerCard.getHealth() <= 0 && opponentCard.getHealth() <= 0) {
-            opponentIndex++;
-        } else if (opponentCard.getHealth() <= 0) {
+        // If the opponent card is defeated, move to the next one.
+        if (opponentCard.getHealth() <= 0) {
             opponentIndex++;
         }
+
+        // Update the last round result message.
+        lastRoundResult = "Player card HP: " + selectedPlayerCard.getHealth() +
+                " | Opponent card HP: " + opponentCard.getHealth();
+
+        // Return true if there are no opponent cards left.
         return opponentIndex >= opponentDeck.size();
     }
 
@@ -267,14 +150,12 @@ public class Battle {
                 break;
             }
         }
-
         for (ICard card : opponentDeck) {
             if (card.getHealth() > 0) {
                 opponentDefeated = false;
                 break;
             }
         }
-
         if (playerDefeated && opponentDefeated) {
             return "tie";
         } else if (playerDefeated) {
@@ -287,7 +168,9 @@ public class Battle {
     public ICard getNextOpponentCard() {
         while (opponentIndex < opponentDeck.size()) {
             ICard nextCard = opponentDeck.get(opponentIndex);
-            if (nextCard.getHealth() > 0) return nextCard;
+            if (nextCard.getHealth() > 0) {
+                return nextCard;
+            }
             opponentIndex++;
         }
         return null;
