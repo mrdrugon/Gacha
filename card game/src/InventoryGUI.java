@@ -124,10 +124,12 @@ public class InventoryGUI {
         }
         // Create an upgraded card.
         // For rarity, we assume ICard has a getRarity() method; if not, we can cast to BasicCard.
-        String rarity = (card instanceof BasicCard) ? ((BasicCard) card).getRarity() : "Common";
-        ICard upgradedCard = new BasicCard(card.getName() + " +1", card.getAttack() + 1, card.getHealth() + 1, rarity);
+        /*String rarity = (card instanceof BasicCard) ? ((BasicCard) card).getRarity() : "Common";
+        ICard upgradedCard = new BasicCard(card.getName() + " +1", card.getAttack() + 1, card.getHealth() + 1, rarity, card);
         inventory.addCards(Arrays.asList(upgradedCard));
         updateInventoryDisplay();
+
+         */
     }
 
     private class CardPanel extends JButton {

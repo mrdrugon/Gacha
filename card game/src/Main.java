@@ -172,7 +172,7 @@ public class Main extends JFrame {
         return panel;
     }
 
-    private void openPack() {
+    public void openPack() {
         // Enforce factory usage.
         Pack pack = PackFactory.createPack(PackType.NORMAL);
         java.util.List<ICard> newCards = pack.openPack();

@@ -4,13 +4,14 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 public class CardRenderer {
     private static BufferedImage metallicTexture;
     private static BufferedImage goldTexture;
     private static BufferedImage silverTexture;
     private static BufferedImage copperTexture;
-    private static BufferedImage brassTexture;
+    private static BufferedImage leadTexture;
     private static BufferedImage platinumTexture;
 
     private static BufferedImage gemTexture;
@@ -29,7 +30,7 @@ public class CardRenderer {
             goldTexture = applyMetallicTint(metallicTexture, new Color(255, 215, 0, 80));
             silverTexture = applyMetallicTint(metallicTexture, new Color(100, 100, 100, 50));
             copperTexture = applyMetallicTint(metallicTexture, new Color(198,131,70, 80));
-            brassTexture = applyMetallicTint(metallicTexture, new Color(181,166,66, 80));
+            leadTexture = applyMetallicTint(metallicTexture, new Color(76,87,108, 80));
             platinumTexture = applyMetallicTint(metallicTexture, new Color(217, 217, 217, 50));
 
             gemTexture = ImageIO.read(new File("card game/cards/gemTexture.jpg"));
@@ -42,7 +43,7 @@ public class CardRenderer {
             goldTexture = null;
             silverTexture = null;
             copperTexture = null;
-            brassTexture = null;
+            leadTexture = null;
             platinumTexture = null;
 
             gemTexture = null;
@@ -73,8 +74,8 @@ public class CardRenderer {
                 g2d.drawImage(silverTexture, 0, 0, width, height, null);
             } else if (card.getName().equals("Copper") && copperTexture != null) {
                 g2d.drawImage(copperTexture, 0, 0, width, height, null);
-            } else if (card.getName().equals("Brass") && brassTexture != null) {
-                g2d.drawImage(brassTexture, 0, 0, width, height, null);
+            } else if (card.getName().equals("Lead") && leadTexture != null) {
+                g2d.drawImage(leadTexture, 0, 0, width, height, null);
             } else if (card.getName().equals("Platinum") && platinumTexture != null) {
                 g2d.drawImage(platinumTexture, 0, 0, width, height, null);
             }
@@ -106,239 +107,27 @@ public class CardRenderer {
         g2d.drawString("HP: " + card.getHealth(), 10, 50);
         g2d.drawString("ATK: " + card.getAttack(), 10, 70);
 
-
-        //Draw Double Attack
-        if (card instanceof DoubleAttackDecorator){
-            DoubleAttackDecorator doubleAttack = (DoubleAttackDecorator) card;
+        int abilityY = 100;
+        for (AbilityType type : card.getAbilities()) {
             g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
+            g2d.drawString("ABILITY", 10, abilityY);
+            abilityY += 20;
 
             g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String doubleAttackText = ("If card survived an attack, it attacks again");
-            drawMultilineText(g2d, doubleAttackText, 10, 120, width - 20);
-
+            drawMultilineText(g2d, getAbilityDescription(type), 10, abilityY, width - 20);
+            abilityY += 40; // Adjust for multiline spacing
         }
+    }
 
-        //Draw Revive
-        if (card instanceof ReviveDecorator){
-            ReviveDecorator Revive = (ReviveDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("After death the card revives with full health");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-
-        }
-
-        //Draw Self Observe
-        if (card instanceof SelfObserveDecorator){
-            SelfObserveDecorator Self = (SelfObserveDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("The less health you have, the more damage you do");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //poison attack
-        if (card instanceof PoisonAttackDecorator){
-            PoisonAttackDecorator Poison = (PoisonAttackDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("The opponent losses health at the start of every turn");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-
-        //regeneration
-        if (card instanceof RegenerationDecorator){
-            RegenerationDecorator Reg = (RegenerationDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("After taking damage, the card recovers 15% of it's health");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //self-harm
-        if (card instanceof SelfHarmDecorator){
-            SelfHarmDecorator Harm = (SelfHarmDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Attacks two times the damage, but has 25% of destroying it self ");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //triple attack
-        if (card instanceof TripleSliceDecorator){
-            TripleSliceDecorator attack = (TripleSliceDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Attack three times per turn. Each subsequent attack will deal less damage than the previous one.");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //explosion
-        if (card instanceof ExplosionDecorator){
-            ExplosionDecorator attack = (ExplosionDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Deals 3× damage but will cause the card to be stunned for one turn");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Shadow
-        if (card instanceof ShadowDecorator){
-            ShadowDecorator attack = (ShadowDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Reduce the opponent’s health by 10%");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //resilient
-        if (card instanceof ResilientDecorator){
-            ResilientDecorator attack = (ResilientDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Reduce incoming damage by 15%");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //barrel-roll
-        if (card instanceof BarrelRollDecorator){
-            BarrelRollDecorator attack = (BarrelRollDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("30% chance to dodge incoming attacks");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Damage Boost
-        if (card instanceof DamageBoostDecorator){
-            DamageBoostDecorator attack = (DamageBoostDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Card attack twice, with the second attack dealing 20% more damage");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Fist hit dodge
-        if (card instanceof FirstHitDogeDecorator){
-            FirstHitDogeDecorator attack = (FirstHitDogeDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Card always dodges the first attack");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Booster
-        if (card instanceof BoosterDecorator){
-            BoosterDecorator attack = (BoosterDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("All cards in deck gain 30% attack boost, on use");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Robber
-        if (card instanceof RobberDecorator){
-            RobberDecorator attack = (RobberDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("After defeating a card, steal 30% of their attack and health.");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Increaser
-        if (card instanceof IncreaserDecorator){
-            IncreaserDecorator attack = (IncreaserDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Doubles the card's attack if its attack is lower than the opponent's");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Healer
-        if (card instanceof HealerDecorator){
-            HealerDecorator attack = (HealerDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Heals 1 HP every turn");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Life Steal
-        if (card instanceof LifeStealDecorator){
-            LifeStealDecorator attack = (LifeStealDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Steals 20% of the damage dealt as healing");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Thorns
-        if (card instanceof ThornsDecorator){
-            ThornsDecorator attack = (ThornsDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("When this card takes damage, it deals 25% of that damage back");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //Fury
-        if (card instanceof FuryDecorator){
-            FuryDecorator attack = (FuryDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Gains +3 attack if its health is above 50%.");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
-        }
-
-        //BattleHardened
-        if (card instanceof BattleHardenedDecorator){
-            BattleHardenedDecorator attack = (BattleHardenedDecorator) card;
-            g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, 100);
-
-            g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-            String ReviveText = ("Gains +1 attack after each successful hit.");
-            drawMultilineText(g2d, ReviveText, 10, 120, width - 20);
+    private static String getAbilityDescription(AbilityType type) {
+        switch (type) {
+            case FROSTBITE:
+                return "Reduces enemy card’s attack by 2.";
+            case LIGHTNING_CHARGE:
+                return "Gains +5 ATK after taking damage.";
+            // Add others
+            default:
+                return "";
         }
     }
 
@@ -386,30 +175,30 @@ public class CardRenderer {
     private static Color getCardColor(ICard card) {
         switch (card.getName()) {
             case "Red": return Color.RED;
-            case "Blue": return Color.BLUE;
-            case "Green": return Color.GREEN;
-            case "Yellow": return Color.YELLOW;
-            case "Orange": return Color.ORANGE;
+            case "Azure Guardian": return Color.BLUE;
+            case "Verdant Guardian": return Color.GREEN;
+            case "Yellow Avenger": return Color.YELLOW;
+            case "Citrine Monk": return Color.ORANGE;
             case "Pink": return Color.PINK;
             case "Purple": return new Color(157,0,255);
-            case "Crimson": return new Color(178,34,34);
-            case "Rose": return new Color(250,0,63);
-            case "Aqua": return new Color(0,255,240);
-            case "Violet": return new Color(127,0,255);
-            case "Coral": return new Color(255,133,89);
-            case "Cyan": return new Color(0,255,255);
+            case "Crimson Berserker": return new Color(178,34,34);
+            case "Scarlet Phoenix": return new Color(250,0,63);
+            case "Blue Ice Warden": return new Color(0,255,240);
+            case "Nightmare Specter": return new Color(127,0,255);
+            case "Volcanic Golem": return new Color(255,133,89);
+            case "Frost Titan": return new Color(0,255,255);
             case "Flamingo": return new Color(252,142,172);
 
-            case "Copper": return new Color(198,131,70);
-            case "Brass": return new Color(181,166,66);
+            case "Blazing Lion": return new Color(198,131,70);
+            case "Lead": return new Color(76,87,108);
             case "Platinum": return new Color(217,217,217);
             case "Silver": return new Color(192, 192, 192);
-            case "Gold": return new Color(255, 215, 0);
+            case "Sunset Golem": return new Color(255, 215, 0);
 
             case "Sapphire": return new Color(15,82,186);
             case "Ruby": return new Color(224,17,95);
-            case "Emerald": return new Color(80,200,120);
-            case "Amethyst": return new Color(153,102,204);
+            case "Zephyr Falcon": return new Color(80,200,120);
+            case "Prism Dragon": return new Color(153,102,204);
             case "Rainbow": return Color.MAGENTA;
             default: return new Color(100, 100, 100);
         }

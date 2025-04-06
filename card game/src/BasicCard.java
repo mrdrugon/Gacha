@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class BasicCard implements ICard {
     private static int counter = 1;
     private int id;
@@ -6,14 +9,16 @@ public class BasicCard implements ICard {
     private int health;
     private int originalHealth;
     private String rarity;
+    private List<AbilityType> abilities;
 
-    public BasicCard(String name, int attack, int health, String rarity) {
+    public BasicCard(String name, int attack, int health, String rarity, List<AbilityType> abilityType) {
         this.name = name;
         this.attack = attack;
         this.health = health;
         this.originalHealth = health;
         this.rarity = rarity;
         this.id = counter++;
+        this.abilities = (abilityType == null) ? new ArrayList<>() : new ArrayList<>(abilityType);
     }
 
     @Override
@@ -62,6 +67,43 @@ public class BasicCard implements ICard {
     @Override
     public int getId() {
         return id;
+    }
+
+    @Override
+    public List<AbilityType> getAbilities() {
+        return abilities;
+    }
+
+    @Override
+    public void addAbility(AbilityType ability) {
+        abilities.add(ability);
+    }
+
+    public void attack(ICard target, Battle battle) {
+        for (AbilityType type : abilities) {
+            CardAbilities.onAttack(this, target, type, battle);
+        }
+        target.takeDamageWithAbilities(this.attack, battle);
+    }
+
+    @Override
+    public void takeDamageWithAbilities(int damage, Battle battle) {
+        this.health = Math.max(0, this.health - damage);
+        for (AbilityType type : abilities) {
+            CardAbilities.onTakeDamage(this, damage, type, battle);
+        }
+    }
+
+    public void startTurn(Battle battle) {
+        for (AbilityType type : abilities) {
+            CardAbilities.onTurnStart(this, type, battle);
+        }
+    }
+
+    public void endTurn(Battle battle) {
+        for (AbilityType type : abilities) {
+            CardAbilities.onTurnEnd(this, type, battle);
+        }
     }
 
     @Override

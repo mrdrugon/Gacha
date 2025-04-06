@@ -267,9 +267,6 @@ public class BattleGUI {
 
     private void resetPlayerCards() {
         for (ICard card : playerDeck) {
-            if (card instanceof ReviveDecorator) {
-                ((ReviveDecorator) card).revived = false;
-            }
             card.resetHealth();
         }
     }

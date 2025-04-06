@@ -7,12 +7,12 @@ final class LegendaryPack implements Pack {
     private static final int PACK_SIZE = 1;
 
     private static final ICard[] LEGENDARY_CARDS = {
-            new BasicCard("Sapphire", 8, 9, "Legendary"),
-            new BasicCard("Ruby", 9, 8, "Legendary"),
-            new BasicCard("Emerald", 9, 7, "Legendary"),
-            new BasicCard("Amethyst", 7, 9, "Legendary"),
+            new BasicCard("Sapphire", 8, 9, "Legendary", null),
+            new BasicCard("Ruby", 9, 8, "Legendary", null),
+            new BasicCard("Emerald", 9, 7, "Legendary", null),
+            new BasicCard("Amethyst", 7, 9, "Legendary", null),
 
-            new BasicCard("Rainbow", 9, 9, "Legendary")
+            new BasicCard("Rainbow", 9, 9, "Legendary", null)
     };
 
     // Package-private constructor.
@@ -23,7 +23,7 @@ final class LegendaryPack implements Pack {
         List<ICard> pack = new ArrayList<>();
         for (int i = 0; i < PACK_SIZE; i++) {
             ICard template = LEGENDARY_CARDS[rand.nextInt(LEGENDARY_CARDS.length)];
-            pack.add(new BasicCard(template.getName(), template.getAttack(), template.getHealth(), "Legendary"));
+            pack.add(new BasicCard(template.getName(), template.getAttack(), template.getHealth(), "Legendary", template.getAbilities()));
         }
         return pack;
     }

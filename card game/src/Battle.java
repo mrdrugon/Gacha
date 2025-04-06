@@ -7,12 +7,11 @@ public class Battle {
     private List<ICard> opponentDeck;
     private Map<Integer, ICard> playerCardsMap;
     private Map<Integer, ICard> opponentCardsMap;
-    private Map<ICard, Integer> poisonedCards;  // Renamed from poisendCards
+    private Map<ICard, Integer> poisonedCards;
     private Map<ICard, Integer> stunnedCards;
     private static ICard currentOpponentCard;
 
     private int opponentIndex;
-    private String lastRoundResult;
     public ICard selectedPlayerCard;
 
     public Battle(List<ICard> playerDeck, List<ICard> opponentDeck) {
@@ -23,7 +22,6 @@ public class Battle {
         this.poisonedCards = new HashMap<>();
         this.stunnedCards = new HashMap<>();
         this.opponentIndex = 0;
-        this.lastRoundResult = "";
 
         // Map player's cards by their ID.
         for (ICard card : playerDeck) {
@@ -58,56 +56,46 @@ public class Battle {
         while (opponentIndex < opponentDeck.size() && opponentDeck.get(opponentIndex).getHealth() <= 0) {
             opponentIndex++;
         }
-        if (opponentIndex >= opponentDeck.size()) {
-            lastRoundResult = "No opponent cards left.";
-            return true;  // Battle over.
-        }
+
+        if (opponentIndex >= opponentDeck.size()) return true;
 
         ICard opponentCard = getNextOpponentCard();
-        if (opponentCard == null) {
-            lastRoundResult = "No opponent card available.";
-            return true;
-        }
+        if (opponentCard == null) return true;
 
-        // Retrieve attack values.
-        int playerAttack = selectedPlayerCard.getAttack();
-        int opponentAttack = opponentCard.getAttack();
-
-        // Set current opponent card for abilities that may reference it.
+        // Set current opponent for reference
         currentOpponentCard = opponentCard;
 
-        // Basic damage exchange.
-        selectedPlayerCard.takeDamage(opponentAttack);
-        opponentCard.takeDamage(playerAttack);
-
-        // Handle double attack ability.
-        if (selectedPlayerCard instanceof DoubleAttackDecorator &&
-                selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
-            opponentCard.takeDamage(playerAttack);
+        // Trigger turn start effects
+        if (selectedPlayerCard instanceof BasicCard) {
+            ((BasicCard) selectedPlayerCard).startTurn(this);
         }
-        if (opponentCard instanceof DoubleAttackDecorator &&
-                opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
-            selectedPlayerCard.takeDamage(opponentAttack);
+        if (opponentCard instanceof BasicCard) {
+            ((BasicCard) opponentCard).startTurn(this);
         }
 
-        // Handle damage boost ability.
-        int playerBoostAttack = (int) Math.round(selectedPlayerCard.getAttack() * 1.2);
-        int opponentBoostAttack = (int) Math.round(opponentCard.getAttack() * 1.2);
-        if (selectedPlayerCard instanceof DamageBoostDecorator &&
-                selectedPlayerCard.getHealth() > 0 && opponentCard.getHealth() > 0) {
-            opponentCard.takeDamage(playerBoostAttack);
-        }
-        if (opponentCard instanceof DamageBoostDecorator &&
-                opponentCard.getHealth() > 0 && selectedPlayerCard.getHealth() > 0) {
-            selectedPlayerCard.takeDamage(opponentBoostAttack);
+
+        // Player attacks opponent
+        if (selectedPlayerCard instanceof BasicCard) {
+            ((BasicCard) selectedPlayerCard).attack(opponentCard, this);
+        } else {
+            opponentCard.takeDamageWithAbilities(selectedPlayerCard.getAttack(), this);
         }
 
-        // Handle revive ability.
-        if (selectedPlayerCard.getHealth() <= 0 && selectedPlayerCard instanceof ReviveDecorator) {
-            ((ReviveDecorator) selectedPlayerCard).revive();
+        // Opponent attacks player (if still alive)
+        if (opponentCard.getHealth() > 0) {
+            if (opponentCard instanceof BasicCard) {
+                ((BasicCard) opponentCard).attack(selectedPlayerCard, this);
+            } else {
+                selectedPlayerCard.takeDamageWithAbilities(opponentCard.getAttack(), this);
+            }
         }
-        if (opponentCard.getHealth() <= 0 && opponentCard instanceof ReviveDecorator) {
-            ((ReviveDecorator) opponentCard).revive();
+
+        // Trigger end-of-turn effects
+        if (selectedPlayerCard instanceof BasicCard) {
+            ((BasicCard) selectedPlayerCard).endTurn(this);
+        }
+        if (opponentCard instanceof BasicCard) {
+            ((BasicCard) opponentCard).endTurn(this);
         }
 
         // If the opponent card is defeated, move to the next one.
@@ -115,16 +103,8 @@ public class Battle {
             opponentIndex++;
         }
 
-        // Update the last round result message.
-        lastRoundResult = "Player card HP: " + selectedPlayerCard.getHealth() +
-                " | Opponent card HP: " + opponentCard.getHealth();
-
         // Return true if there are no opponent cards left.
         return opponentIndex >= opponentDeck.size();
-    }
-
-    public String getLastRoundResult() {
-        return lastRoundResult;
     }
 
     public boolean didPlayerWin() {
