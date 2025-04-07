@@ -84,9 +84,9 @@ public class MainMenuGUI extends JPanel {
         mainFrame.setLogArea(logArea);
 
         // Start animation
-        animationTimer = new Timer(30, e -> {
-            scrollY += 1;
-            if (scrollY > backgroundImage.getHeight()) scrollY = 0;
+        animationTimer = new Timer(1, e -> {
+            scrollY -= 2;
+            if (scrollY < 0) scrollY = backgroundImage.getHeight();
             repaint();
         });
         animationTimer.start();
@@ -126,7 +126,6 @@ public class MainMenuGUI extends JPanel {
                     g2d.drawImage(tintedImage(), x, y, this);
                 }
             }
-
             g2d.dispose();
         }
     }
@@ -143,11 +142,14 @@ public class MainMenuGUI extends JPanel {
         g.drawImage(backgroundImage, 0, 0, null);
 
         // Overlay gradient with changing color
-        float time = System.currentTimeMillis() % 3000 / 3000f;
+        float time = (System.currentTimeMillis() % 20000) / 20000f; // Slower hue shift
         Color startColor = Color.getHSBColor(time, 1.0f, 1.0f);
         Color endColor = Color.getHSBColor((time + 0.33f) % 1f, 1.0f, 1.0f);
-        GradientPaint gp = new GradientPaint(0, 0, startColor, w, h, endColor, true);
+        GradientPaint gp = new GradientPaint(0, scrollY, startColor, 0, scrollY + h, endColor, true);
 
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setComposite(AlphaComposite.SrcAtop);
         g.setPaint(gp);
         g.fillRect(0, 0, w, h);
