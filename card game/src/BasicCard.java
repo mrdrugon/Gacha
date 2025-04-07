@@ -10,6 +10,7 @@ public class BasicCard implements ICard {
     private int originalHealth;
     private String rarity;
     private List<AbilityType> abilities;
+    private boolean hasRevived = false;
 
     public BasicCard(String name, int attack, int health, String rarity, List<AbilityType> abilityType) {
         this.name = name;
@@ -150,6 +151,14 @@ public class BasicCard implements ICard {
         for (AbilityType type : abilities) {
             CardAbilities.onTurnEnd(this, type, battle);
         }
+    }
+
+    public boolean hasRevived() {
+        return hasRevived;
+    }
+
+    public void setHasRevived(boolean revived) {
+        this.hasRevived = revived;
     }
 
     @Override

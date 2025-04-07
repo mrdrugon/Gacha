@@ -11,5 +11,9 @@ public enum AbilityType {
     RAINBOW_PULSE,
     LAVA_SURGE,
     ASHEN_WINGS,
-    GLACIAL_SHIELD
+    GLACIAL_SHIELD,
+    RADIANT_LIGHT,
+    CYCLONE_FURY,
+    GALE_FORCE,
+    ETERNAL_FLAME
 }

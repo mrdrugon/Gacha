@@ -147,6 +147,14 @@ public class CardRenderer {
                 return "When this card is destroyed, it deals 10 damage to all enemy cards.";
             case GLACIAL_SHIELD:
                 return "Reduces incoming damage by 50% for 1 turn when summoned.";
+            case RADIANT_LIGHT:
+                return "Heals all friendly cards for 10 health every 3 turns.";
+            case CYCLONE_FURY:
+                return "Deals 10 damage to a random enemy every 2 turns.";
+            case GALE_FORCE:
+                return "Reduces the enemy’s attack by 4 for 2 turns after attacking.";
+            case ETERNAL_FLAME:
+                return "When destroyed, it revives with full health and gains +5 attack.";
             // Add others
             default:
                 return "";

@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,9 @@ public class CardAbilities {
                 break;
             case LAVA_SURGE:
                 applyLavaSurge(attacker, battle);
+                break;
+            case GALE_FORCE:
+                applyGaleForce(target, battle);
                 break;
             // Add more attack-based abilities here
         }
@@ -45,6 +49,12 @@ public class CardAbilities {
             case GLACIAL_SHIELD:
                 applyGlacialShield(card, battle);
                 break;
+            case RADIANT_LIGHT:
+                applyRadiantLight(card, battle);
+                break;
+            case CYCLONE_FURY:
+                applyCycloneFury(card, battle);
+                break;
         }
     }
 
@@ -63,6 +73,10 @@ public class CardAbilities {
                 break;
             case ASHEN_WINGS:
                 applyAshenWings(card, battle);
+                break;
+            case ETERNAL_FLAME:
+                applyEternalFlame(card);
+                break;
             // Add more death-triggered abilities here
         }
     }
@@ -170,5 +184,45 @@ public class CardAbilities {
 
     private static void applyGlacialShield(ICard card, Battle battle) {
         battle.setGlacialShield(card, 1);
+    }
+
+    private static void applyRadiantLight(ICard card, Battle battle) {
+        if (battle.getGlobalTurnCounter() % 3 == 0) {
+            List<ICard> allies = battle.getPlayerDeck(); // assuming this card is always player-owned
+            for (ICard ally : allies) {
+                if (ally.getHealth() > 0) {
+                    ally.setHealth(ally.getHealth() + 10);
+                }
+            }
+        }
+    }
+
+    private static void applyCycloneFury(ICard card, Battle battle) {
+        if (battle.getGlobalTurnCounter() % 2 != 0) return;
+
+        List<ICard> enemies = battle.getOpponentDeckFor(card);
+        List<ICard> aliveEnemies = new ArrayList<>();
+        for (ICard enemy : enemies) {
+            if (enemy.getHealth() > 0) {
+                aliveEnemies.add(enemy);
+            }
+        }
+
+        if (!aliveEnemies.isEmpty()) {
+            ICard target = aliveEnemies.get((int) (Math.random() * aliveEnemies.size()));
+            target.takeDamageWithAbilities(10, battle);
+        }
+    }
+
+    private static void applyGaleForce(ICard target, Battle battle) {
+        battle.applyGaleForceDebuff(target);
+    }
+
+    private static void applyEternalFlame(ICard card) {
+        if (card instanceof BasicCard basicCard && !basicCard.hasRevived()) {
+            basicCard.setHealth(basicCard.getOriginalHealth());
+            basicCard.setAttack(basicCard.getAttack() + 5);
+            basicCard.setHasRevived(true);
+        }
     }
 }

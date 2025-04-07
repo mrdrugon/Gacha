@@ -14,6 +14,9 @@ public class Battle {
     private Map<ICard, Integer> burningCards = new HashMap<>();
     private final Map<ICard, Integer> lavaSurgeCards = new HashMap<>();
     private Map<ICard, Integer> glacialShieldedCards = new HashMap<>();
+    private int globalTurnCounter = 0;
+    private Map<ICard, Integer> galeForceDebuff = new HashMap<>();
+
 
     private int opponentIndex;
     public ICard selectedPlayerCard;
@@ -119,7 +122,6 @@ public class Battle {
             glacialShieldedCards.entrySet().removeIf(entry -> {
                 int turnsLeft = entry.getValue() - 1;
                 if (turnsLeft <= 0) {
-                    System.out.println("[Glacial Shield] " + entry.getKey().getName() + "'s shield wears off.");
                     return true;
                 } else {
                     glacialShieldedCards.put(entry.getKey(), turnsLeft);
@@ -128,11 +130,41 @@ public class Battle {
             });
         }
 
+        globalTurnCounter++;
         decrementFrozenCards();
         decrementBurningCards();
+        tickGaleForceDebuff();
 
         // Return true if there are no opponent cards left.
         return opponentIndex >= opponentDeck.size();
+    }
+
+    public void applyGaleForceDebuff(ICard target) {
+        galeForceDebuff.put(target, 2); // lasts 2 turns
+        target.setAttack(target.getAttack() - 4);
+    }
+
+    public void tickGaleForceDebuff() {
+        galeForceDebuff.entrySet().removeIf(entry -> {
+            ICard card = entry.getKey();
+            int turnsLeft = entry.getValue() - 1;
+
+            if (turnsLeft <= 0) {
+                card.setAttack(card.getAttack() + 4); // restore the attack
+                return true;
+            } else {
+                entry.setValue(turnsLeft);
+                return false;
+            }
+        });
+    }
+
+    public List<ICard> getOpponentDeckFor(ICard card) {
+        return playerDeck.contains(card) ? opponentDeck : playerDeck;
+    }
+
+    public int getGlobalTurnCounter() {
+        return globalTurnCounter;
     }
 
     public void setGlacialShield(ICard card, int turns) {

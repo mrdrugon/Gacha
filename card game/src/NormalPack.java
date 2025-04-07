@@ -17,14 +17,14 @@ final class NormalPack implements Pack {
     private static final BasicCard[] UNCOMMON_CARDS = {
             new BasicCard("Citrine Monk", 7, 40, "Uncommon", Collections.singletonList(AbilityType.RADIANT_BALANCE)),
             new BasicCard("Blazing Lion", 9, 45, "Uncommon", Collections.singletonList(AbilityType.BURNING_CLAWS)),
-            new BasicCard("Solar Paladin", 10, 60, "Uncommon", null),
-            new BasicCard("Zephyr Falcon", 8, 50, "Uncommon", null)
+            new BasicCard("Solar Paladin", 10, 60, "Uncommon", Collections.singletonList(AbilityType.RADIANT_LIGHT)),
+            new BasicCard("Zephyr Falcon", 8, 50, "Uncommon", Collections.singletonList(AbilityType.GALE_FORCE))
     };
 
     private static final BasicCard[] RARE_CARDS = {
             new BasicCard("Azure Guardian", 8, 60, "Rare", Collections.singletonList(AbilityType.OCEANS_GRASP)),
             new BasicCard("Sunset Golem", 5, 80, "Rare", Collections.singletonList(AbilityType.MOLTEN_CORE)),
-            new BasicCard("Tempest Serpent", 10, 65, "Rare", null),
+            new BasicCard("Tempest Serpent", 10, 65, "Rare", Collections.singletonList(AbilityType.CYCLONE_FURY)),
             new BasicCard("Amber Phoenix", 9, 50, "Rare", Collections.singletonList(AbilityType.ASHEN_WINGS))
     };
 
@@ -35,7 +35,7 @@ final class NormalPack implements Pack {
 
     private static final BasicCard[] LEGENDARY_CARDS = {
             new BasicCard("Prism Dragon", 15, 70, "Legendary", Collections.singletonList(AbilityType.RAINBOW_PULSE)),
-            new BasicCard("Rainbow Phoenix", 20, 90, "Legendary", null)
+            new BasicCard("Rainbow Phoenix", 20, 90, "Legendary", Collections.singletonList(AbilityType.ETERNAL_FLAME))
     };
 
     private static final int COMMON_CHANCE = 60;
