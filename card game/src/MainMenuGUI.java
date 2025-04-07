@@ -1,9 +1,9 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
 public class MainMenuGUI extends JPanel {
     private JLabel playerNameLabel;
@@ -13,10 +13,17 @@ public class MainMenuGUI extends JPanel {
     private JButton storeButton;
     private JButton exitButton;
     private JTextArea logArea;
+    private BufferedImage backgroundImage;
     private int scrollY = 0;
     private Timer animationTimer;
 
     public MainMenuGUI(String playerName, Main mainFrame) {
+        try {
+            backgroundImage = ImageIO.read(new File("card game/cards/Background.png"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         setLayout(null);
         setOpaque(false);
 
@@ -78,8 +85,8 @@ public class MainMenuGUI extends JPanel {
 
         // Start animation
         animationTimer = new Timer(30, e -> {
-            scrollY -= 1;
-            if (scrollY < -40) scrollY = 0; // Wrap cleanly every full dot spacing
+            scrollY += 1;
+            if (scrollY > backgroundImage.getHeight()) scrollY = 0;
             repaint();
         });
         animationTimer.start();
@@ -105,46 +112,47 @@ public class MainMenuGUI extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2d = (Graphics2D) g.create();
 
-        int panelWidth = getWidth();
-        int panelHeight = getHeight();
+        if (backgroundImage != null) {
+            Graphics2D g2d = (Graphics2D) g.create();
 
-        int dotSize = 10;
-        int spacing = 40; // Distance between dots
-        int offsetY = scrollY % spacing;
+            // Scroll background upward
+            int imgHeight = backgroundImage.getHeight();
+            int panelHeight = getHeight();
 
-        // 1. Draw the dot grid
-        for (int y = -spacing + offsetY; y < panelHeight; y += spacing) {
-            for (int x = 0; x < panelWidth; x += spacing) {
-                g2d.setColor(Color.DARK_GRAY);
-                g2d.fillOval(x, y, dotSize, dotSize);
+            // Loop vertically
+            for (int y = -imgHeight + scrollY; y < panelHeight; y += imgHeight) {
+                for (int x = 0; x < getWidth(); x += backgroundImage.getWidth()) {
+                    g2d.drawImage(tintedImage(), x, y, this);
+                }
             }
+
+            g2d.dispose();
         }
+    }
 
-        // 2. Create a transparent animated gradient overlay
-        float time = (System.currentTimeMillis() % 10000) / 10000f;
-        Color tintColor1 = Color.getHSBColor(time, 0.7f, 1f);
-        Color tintColor2 = Color.getHSBColor((time + 0.1f) % 1f, 0.7f, 1f);
-        GradientPaint gradient = new GradientPaint(0, 0, tintColor1, 0, panelHeight, tintColor2);
+    // Apply dynamic gradient tint
+    private BufferedImage tintedImage() {
+        int w = backgroundImage.getWidth();
+        int h = backgroundImage.getHeight();
 
-        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f)); // transparent overlay
-        g2d.setPaint(gradient);
-        g2d.fillRect(0, 0, panelWidth, panelHeight);
+        BufferedImage tinted = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = tinted.createGraphics();
 
-        g2d.setComposite(AlphaComposite.SrcOver); // Reset
+        // Draw original image
+        g.drawImage(backgroundImage, 0, 0, null);
 
-        // 3. Fade at top
-        GradientPaint topFade = new GradientPaint(0, 0, new Color(0, 0, 0, 255), 0, 100, new Color(0, 0, 0, 0));
-        g2d.setPaint(topFade);
-        g2d.fillRect(0, 0, panelWidth, 100);
+        // Overlay gradient with changing color
+        float time = System.currentTimeMillis() % 3000 / 3000f;
+        Color startColor = Color.getHSBColor(time, 1.0f, 1.0f);
+        Color endColor = Color.getHSBColor((time + 0.33f) % 1f, 1.0f, 1.0f);
+        GradientPaint gp = new GradientPaint(0, 0, startColor, w, h, endColor, true);
 
-        // 4. Fade at bottom
-        GradientPaint bottomFade = new GradientPaint(0, panelHeight - 100, new Color(0, 0, 0, 0), 0, panelHeight, new Color(0, 0, 0, 255));
-        g2d.setPaint(bottomFade);
-        g2d.fillRect(0, panelHeight - 100, panelWidth, 100);
+        g.setComposite(AlphaComposite.SrcAtop);
+        g.setPaint(gp);
+        g.fillRect(0, 0, w, h);
+        g.dispose();
 
-        g2d.dispose();
+        return tinted;
     }
 }
-
