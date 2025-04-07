@@ -125,6 +125,28 @@ public class CardRenderer {
                 return "Reduces enemy card’s attack by 2.";
             case LIGHTNING_CHARGE:
                 return "Gains +5 ATK after taking damage.";
+            case THORN_ARMOR:
+                return "Reflects 25% of the damage back to the attacker.";
+            case FLAME_FURY:
+                return "Deals double damage when below 30% health.";
+            case FIRE_REBIRTH:
+                return "Revives with 50% health after being destroyed once.";
+            case OCEANS_GRASP:
+                return "Freezes an enemy card for 1 turn (prevents it from attacking).";
+            case BURNING_CLAWS:
+                return "Deals an additional 3 fire damage for 3 turns after attacking.";
+            case RADIANT_BALANCE:
+                return "Heals itself for 5 health and deals 5 damage at the end of each turn.";
+            case MOLTEN_CORE:
+                return "On death, explodes and deals 15 damage to the card that killed it.";
+            case RAINBOW_PULSE:
+                return "Deals 5 damage to all enemies and heals all allies for 5.";
+            case LAVA_SURGE:
+                return "Deals 10 damage to all enemy cards, but the golem takes 5 damage each turn after use.";
+            case ASHEN_WINGS:
+                return "When this card is destroyed, it deals 10 damage to all enemy cards.";
+            case GLACIAL_SHIELD:
+                return "Reduces incoming damage by 50% for 1 turn when summoned.";
             // Add others
             default:
                 return "";

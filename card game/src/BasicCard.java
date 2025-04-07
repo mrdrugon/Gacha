@@ -79,16 +79,62 @@ public class BasicCard implements ICard {
         abilities.add(ability);
     }
 
+    private boolean hasRebirthed = false;
+
+    public boolean hasRebirthed() {
+        return hasRebirthed;
+    }
+
+    public void setRebirthed(boolean rebirthed) {
+        this.hasRebirthed = rebirthed;
+    }
+
     public void attack(ICard target, Battle battle) {
+        boolean usedFlameFury = false;
         for (AbilityType type : abilities) {
             CardAbilities.onAttack(this, target, type, battle);
+            if (type == AbilityType.FLAME_FURY && (double) this.health / this.originalHealth < 0.3) {
+                usedFlameFury = true;
+            }
         }
-        target.takeDamageWithAbilities(this.attack, battle);
+
+        // Only deal default damage if Flame Fury didn't already do it
+        if (!usedFlameFury) {
+            target.takeDamageWithAbilities(this.attack, battle);
+        }
     }
 
     @Override
     public void takeDamageWithAbilities(int damage, Battle battle) {
         this.health = Math.max(0, this.health - damage);
+
+        for (AbilityType type : abilities) {
+            CardAbilities.onTakeDamage(this, damage, type, battle);
+        }
+
+        if (battle.isGlacialShieldActive(this)) {
+            damage = (int) Math.ceil(damage * 0.5); // Reduce by 50%
+            System.out.println(this.getName() + " is shielded! Damage reduced to " + damage);
+        }
+        this.health = Math.max(0, this.health - damage);
+
+        if (this.health <= 0) {
+            ICard attacker = (this == battle.selectedPlayerCard)
+                    ? Battle.getCurrentOpponentCard()
+                    : battle.selectedPlayerCard;
+            for (AbilityType type : abilities) {
+                CardAbilities.onDeath(this, attacker, type, battle);
+            }
+        }
+
+        // Check for Fire Rebirth AFTER taking damage
+        if (this.health <= 0 && !hasRebirthed && abilities.contains(AbilityType.FIRE_REBIRTH)) {
+            this.health = Math.max(1, originalHealth / 2);
+            this.hasRebirthed = true;
+            return; // skip other effects, card is reborn
+        }
+
+        // Apply other abilities
         for (AbilityType type : abilities) {
             CardAbilities.onTakeDamage(this, damage, type, battle);
         }

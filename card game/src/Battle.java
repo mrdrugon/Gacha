@@ -10,6 +10,10 @@ public class Battle {
     private Map<ICard, Integer> poisonedCards;
     private Map<ICard, Integer> stunnedCards;
     private static ICard currentOpponentCard;
+    private Map<ICard, Integer> frozenCards = new HashMap<>();
+    private Map<ICard, Integer> burningCards = new HashMap<>();
+    private final Map<ICard, Integer> lavaSurgeCards = new HashMap<>();
+    private Map<ICard, Integer> glacialShieldedCards = new HashMap<>();
 
     private int opponentIndex;
     public ICard selectedPlayerCard;
@@ -74,15 +78,16 @@ public class Battle {
         }
 
 
-        // Player attacks opponent
-        if (selectedPlayerCard instanceof BasicCard) {
-            ((BasicCard) selectedPlayerCard).attack(opponentCard, this);
-        } else {
-            opponentCard.takeDamageWithAbilities(selectedPlayerCard.getAttack(), this);
+        if (!isFrozen(selectedPlayerCard)) {
+            if (selectedPlayerCard instanceof BasicCard) {
+                ((BasicCard) selectedPlayerCard).attack(opponentCard, this);
+            } else {
+                opponentCard.takeDamageWithAbilities(selectedPlayerCard.getAttack(), this);
+            }
         }
 
         // Opponent attacks player (if still alive)
-        if (opponentCard.getHealth() > 0) {
+        if (opponentCard.getHealth() > 0 && !isFrozen(opponentCard)) {
             if (opponentCard instanceof BasicCard) {
                 ((BasicCard) opponentCard).attack(selectedPlayerCard, this);
             } else {
@@ -98,13 +103,89 @@ public class Battle {
             ((BasicCard) opponentCard).endTurn(this);
         }
 
+        if (selectedPlayerCard.getHealth() <= 0) {
+            for (AbilityType type : selectedPlayerCard.getAbilities()) {
+                CardAbilities.onDeath(selectedPlayerCard, opponentCard, type, this);
+            }
+        }
+
         // If the opponent card is defeated, move to the next one.
         if (opponentCard.getHealth() <= 0) {
             opponentIndex++;
+            for (AbilityType type : opponentCard.getAbilities()) {
+                CardAbilities.onDeath(opponentCard, selectedPlayerCard, type, this);
+            }
+
+            glacialShieldedCards.entrySet().removeIf(entry -> {
+                int turnsLeft = entry.getValue() - 1;
+                if (turnsLeft <= 0) {
+                    System.out.println("[Glacial Shield] " + entry.getKey().getName() + "'s shield wears off.");
+                    return true;
+                } else {
+                    glacialShieldedCards.put(entry.getKey(), turnsLeft);
+                    return false;
+                }
+            });
         }
+
+        decrementFrozenCards();
+        decrementBurningCards();
 
         // Return true if there are no opponent cards left.
         return opponentIndex >= opponentDeck.size();
+    }
+
+    public void setGlacialShield(ICard card, int turns) {
+        glacialShieldedCards.put(card, turns);
+    }
+
+    public boolean isGlacialShieldActive(ICard card) {
+        return glacialShieldedCards.containsKey(card);
+    }
+
+    public Map<ICard, Integer> getLavaSurgeCards() {
+        return lavaSurgeCards;
+    }
+
+    public void freezeCard(ICard card, int turns) {
+        frozenCards.put(card, turns);
+    }
+
+    public boolean isFrozen(ICard card) {
+        return frozenCards.getOrDefault(card, 0) > 0;
+    }
+
+    private void decrementFrozenCards() {
+        frozenCards.replaceAll((card, turns) -> Math.max(0, turns - 1));
+    }
+
+    public void applyBurn(ICard card, int turns) {
+        burningCards.put(card, turns);
+    }
+
+    private void decrementBurningCards() {
+        Map<ICard, Integer> updated = new HashMap<>();
+        for (Map.Entry<ICard, Integer> entry : burningCards.entrySet()) {
+            ICard card = entry.getKey();
+            int turnsLeft = entry.getValue();
+            if (turnsLeft > 0 && card.getHealth() > 0) {
+                card.takeDamageWithAbilities(3, this);
+                updated.put(card, turnsLeft - 1);
+            }
+        }
+        burningCards = updated;
+    }
+
+    public boolean isPlayerCard(ICard card) {
+        return playerDeck.contains(card);
+    }
+
+    public List<ICard> getPlayerDeck() {
+        return playerDeck;
+    }
+
+    public List<ICard> getOpponentDeck() {
+        return opponentDeck;
     }
 
     public boolean didPlayerWin() {
