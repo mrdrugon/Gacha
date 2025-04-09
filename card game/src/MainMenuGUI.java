@@ -1,7 +1,6 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -16,6 +15,7 @@ public class MainMenuGUI extends JPanel {
     private BufferedImage backgroundImage;
     private int scrollY = 0;
     private Timer animationTimer;
+    private BufferedImage cachedTintedImage;
 
     public MainMenuGUI(String playerName, Main mainFrame) {
         try {
@@ -84,12 +84,18 @@ public class MainMenuGUI extends JPanel {
         mainFrame.setLogArea(logArea);
 
         // Start animation
-        animationTimer = new Timer(1, e -> {
+        animationTimer = new Timer(16, e -> { // 60fps
             scrollY -= 2;
             if (scrollY < 0) scrollY = backgroundImage.getHeight();
             repaint();
         });
+
         animationTimer.start();
+
+        // Background task to update tinted image
+        new Timer(250, e -> {
+            cachedTintedImage = createTintedImage();
+        }).start();
     }
 
     // Function to Resize Images
@@ -112,40 +118,38 @@ public class MainMenuGUI extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        if (cachedTintedImage == null) return;
 
-        if (backgroundImage != null) {
-            Graphics2D g2d = (Graphics2D) g.create();
+        Graphics2D g2d = (Graphics2D) g.create();
+        int imgHeight = cachedTintedImage.getHeight();
+        int panelHeight = getHeight();
 
-            // Scroll background upward
-            int imgHeight = backgroundImage.getHeight();
-            int panelHeight = getHeight();
-
-            // Loop vertically
-            for (int y = -imgHeight + scrollY; y < panelHeight; y += imgHeight) {
-                for (int x = 0; x < getWidth(); x += backgroundImage.getWidth()) {
-                    g2d.drawImage(tintedImage(), x, y, this);
-                }
+        for (int y = -imgHeight + scrollY; y < panelHeight; y += imgHeight) {
+            for (int x = 0; x < getWidth(); x += cachedTintedImage.getWidth()) {
+                g2d.drawImage(cachedTintedImage, x, y, this);
             }
-            g2d.dispose();
         }
+
+        g2d.dispose();
     }
 
-    // Apply dynamic gradient tint
-    private BufferedImage tintedImage() {
+    private BufferedImage createTintedImage() {
         int w = backgroundImage.getWidth();
         int h = backgroundImage.getHeight();
 
-        BufferedImage tinted = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = tinted.createGraphics();
+        if (cachedTintedImage == null ||
+                cachedTintedImage.getWidth() != w ||
+                cachedTintedImage.getHeight() != h) {
+            cachedTintedImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        }
 
-        // Draw original image
+        Graphics2D g = cachedTintedImage.createGraphics();
         g.drawImage(backgroundImage, 0, 0, null);
 
-        // Overlay gradient with changing color
-        float time = (System.currentTimeMillis() % 20000) / 20000f; // Slower hue shift
+        float time = (System.currentTimeMillis() % 20000) / 20000f;
         Color startColor = Color.getHSBColor(time, 1.0f, 1.0f);
         Color endColor = Color.getHSBColor((time + 0.33f) % 1f, 1.0f, 1.0f);
-        GradientPaint gp = new GradientPaint(0, scrollY, startColor, 0, scrollY + h, endColor, true);
+        GradientPaint gp = new GradientPaint(0, scrollY, startColor, 0, scrollY + h, endColor);
 
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -155,6 +159,6 @@ public class MainMenuGUI extends JPanel {
         g.fillRect(0, 0, w, h);
         g.dispose();
 
-        return tinted;
+        return cachedTintedImage;
     }
 }

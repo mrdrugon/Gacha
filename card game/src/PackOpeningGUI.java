@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PackOpeningGUI extends JFrame {
@@ -14,8 +15,10 @@ public class PackOpeningGUI extends JFrame {
     private List<ICard> cards;
     private int cardIndex = 0;
     private boolean packOpened = false;
-    private boolean showingFinalScreen = false;
     private ImageIcon packIcon;
+    private Timer sharedPulseTimer;
+    private List<CardPanel> displayedPanels = new ArrayList<>();
+    private boolean isAnimating = false;
 
     public PackOpeningGUI(List<ICard> cards) {
         this.cards = cards;
@@ -31,14 +34,20 @@ public class PackOpeningGUI extends JFrame {
 
         resizePackImage();
 
-        panel.add(displayLabel, BorderLayout.CENTER);
-        panel.addMouseListener(new MouseAdapter() {
+        JPanel packWrapper = new JPanel(new GridBagLayout());
+        packWrapper.setOpaque(false);
+        packWrapper.add(displayLabel);
+        panel.add(packWrapper, BorderLayout.CENTER);
+
+        displayLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
-                if (!packOpened) {
+                if (!packOpened && !isAnimating) {
+                    isAnimating = true;
                     openPackAnimation();
-                } else if (!showingFinalScreen) {
-                    showNextCard();
+                } else if (isAnimating) {
+                    if (timer != null) timer.stop();
+                    showFinalScreen();
                 }
             }
         });
@@ -52,6 +61,11 @@ public class PackOpeningGUI extends JFrame {
 
         add(panel);
         setVisible(true);
+    }
+
+    private void stopTimers() {
+        if (sharedPulseTimer != null) sharedPulseTimer.stop();
+        if (timer != null) timer.stop();
     }
 
     private void resizePackImage() {
@@ -103,6 +117,7 @@ public class PackOpeningGUI extends JFrame {
 
             timer = new Timer(1200, e -> {
                 timer.stop();
+                isAnimating = false;
                 showNextCard();
             });
 
@@ -113,37 +128,58 @@ public class PackOpeningGUI extends JFrame {
         }
     }
     private void showFinalScreen() {
-        showingFinalScreen = true;
+        isAnimating = false;
         panel.removeAll();
 
         JPanel finalPanel = new JPanel(new GridLayout(0, 3, 10, 10));
 
-        for (ICard card : cards) {
-            CardPanel cardPanel = new CardPanel(card, 100, 150);
+        sharedPulseTimer = new Timer(30, e -> {
+            for (CardPanel panel : displayedPanels) {
+                panel.updatePulse();
+            }
+        });
+        sharedPulseTimer.start();
 
-            // Optional: Add hover effect to enlarge
+        for (ICard card : cards) {
+            // After you create each CardPanel
+            CardPanel cardPanel = new CardPanel(card, 100, 150);
+            displayedPanels.add(cardPanel);  // Track it
+
             cardPanel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    cardPanel.setPreferredSize(new Dimension(120 + 40, 170 + 40));
-                    cardPanel.width = 120;
-                    cardPanel.height = 170;
-                    cardPanel.revalidate();
-                    cardPanel.repaint();
+                    cardPanel.setHoverSize(true);
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    cardPanel.setPreferredSize(new Dimension(100 + 40, 150 + 40));
-                    cardPanel.width = 100;
-                    cardPanel.height = 150;
-                    cardPanel.revalidate();
-                    cardPanel.repaint();
+                    cardPanel.setHoverSize(false);
                 }
             });
 
+
             finalPanel.add(cardPanel);
         }
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                stopTimers();
+            }
+        });
+
+        finalPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                stopTimers();
+                dispose();
+            }
+        });
+
+        JLabel tip = new JLabel("Click anywhere to continue", JLabel.CENTER);
+        tip.setFont(new Font("Arial", Font.ITALIC, 14));
+        tip.setForeground(Color.GRAY);
+        panel.add(tip, BorderLayout.SOUTH);
 
         panel.add(finalPanel, BorderLayout.CENTER);
         panel.revalidate();
@@ -197,13 +233,19 @@ public class PackOpeningGUI extends JFrame {
             this.rarityEffect = loadRarityEffect(card.getRarity(), width, height);
             setPreferredSize(new Dimension(width + 40, height + 40)); // extra space for pulsing
             setOpaque(false);
+        }
 
-            Timer animationTimer = new Timer(30, e -> {
-                pulsePhase += pulseSpeed;
-                pulseScale = 1.0f + 0.1f * (float) Math.sin(pulsePhase); // Pulses between 1.0 and 1.1
-                repaint();
-            });
-            animationTimer.start();
+        public void setHoverSize(boolean enlarged) {
+            if (enlarged) {
+                width = 120;
+                height = 170;
+            } else {
+                width = 100;
+                height = 150;
+            }
+            setPreferredSize(new Dimension(width + 40, height + 40));
+            revalidate();
+            repaint();
         }
 
         @Override
@@ -235,6 +277,12 @@ public class PackOpeningGUI extends JFrame {
             CardRenderer.renderCard(g2d, card, width, height);
 
             g2d.dispose();
+        }
+
+        public void updatePulse() {
+            pulsePhase += pulseSpeed;
+            pulseScale = 1.0f + 0.05f * (float) Math.sin(pulsePhase);
+            repaint();
         }
     }
 }

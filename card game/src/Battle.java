@@ -8,7 +8,6 @@ public class Battle {
     private Map<Integer, ICard> playerCardsMap;
     private Map<Integer, ICard> opponentCardsMap;
     private Map<ICard, Integer> poisonedCards;
-    private Map<ICard, Integer> stunnedCards;
     private static ICard currentOpponentCard;
     private Map<ICard, Integer> frozenCards = new HashMap<>();
     private Map<ICard, Integer> burningCards = new HashMap<>();
@@ -27,7 +26,6 @@ public class Battle {
         this.playerCardsMap = new HashMap<>();
         this.opponentCardsMap = new HashMap<>();
         this.poisonedCards = new HashMap<>();
-        this.stunnedCards = new HashMap<>();
         this.opponentIndex = 0;
 
         // Map player's cards by their ID.
