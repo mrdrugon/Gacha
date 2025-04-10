@@ -99,6 +99,17 @@ public class PackOpeningGUI extends JFrame {
 
             CardPanel cardPanel = new CardPanel(card, 150, 200);
 
+            cardPanel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (timer != null) {
+                        timer.stop(); // Stop current auto-timer
+                    }
+                    isAnimating = false;
+                    showNextCard(); // Manually show next card
+                }
+            });
+
             // Use GridBagLayout to center the card both vertically and horizontally
             JPanel centerWrapper = new JPanel(new GridBagLayout());
             centerWrapper.setOpaque(false);

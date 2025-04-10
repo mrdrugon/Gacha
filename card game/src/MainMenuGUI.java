@@ -12,18 +12,25 @@ public class MainMenuGUI extends JPanel {
     private JButton storeButton;
     private JButton exitButton;
     private JTextArea logArea;
-    private BufferedImage backgroundImage;
-    private int scrollY = 0;
     private Timer animationTimer;
-    private BufferedImage cachedTintedImage;
+
+    // Animation state
+    private int dotSize = 2;
+    private final int maxDotSize = 100;
+    private final int dotSpacing = 50;
+    private int rowsVisible = 1;
+    private boolean isBlackDots = true;
+    private boolean growing = true;
+
+    // Timing control
+    private int frameCounter = 0;
+    private final int sizeIncreaseInterval = 2; // Increase size every frame
+    private final int rowsIncreaseInterval = 6; // Increase rows every frame
+
+
+
 
     public MainMenuGUI(String playerName, Main mainFrame) {
-        try {
-            backgroundImage = ImageIO.read(new File("card game/cards/Background.png"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         setLayout(null);
         setOpaque(false);
 
@@ -84,18 +91,31 @@ public class MainMenuGUI extends JPanel {
         mainFrame.setLogArea(logArea);
 
         // Start animation
-        animationTimer = new Timer(16, e -> { // 60fps
-            scrollY -= 2;
-            if (scrollY < 0) scrollY = backgroundImage.getHeight();
+        animationTimer = new Timer(16, e -> {
+            int totalRows = getHeight() / dotSpacing + 2;
+
+            frameCounter++;
+
+            if (growing){
+                if (frameCounter % sizeIncreaseInterval == 0 && dotSize < maxDotSize){
+                    dotSize++;
+                }
+                if (frameCounter % rowsIncreaseInterval == 0 && rowsVisible < totalRows){
+                    rowsVisible++;
+                }
+                if (dotSize >= maxDotSize && rowsVisible >= totalRows){
+                  growing = false;
+                }
+            }else {
+                dotSize = 2;
+                rowsVisible = 1;
+                isBlackDots = !isBlackDots;
+                growing = true;
+                frameCounter = 0;
+            }
             repaint();
         });
-
         animationTimer.start();
-
-        // Background task to update tinted image
-        new Timer(250, e -> {
-            cachedTintedImage = createTintedImage();
-        }).start();
     }
 
     // Function to Resize Images
@@ -118,47 +138,20 @@ public class MainMenuGUI extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (cachedTintedImage == null) return;
 
-        Graphics2D g2d = (Graphics2D) g.create();
-        int imgHeight = cachedTintedImage.getHeight();
-        int panelHeight = getHeight();
+        g.setColor(isBlackDots ? Color.WHITE : Color.BLACK);
+        g.fillRect(0, 0, getWidth(), getHeight());
 
-        for (int y = -imgHeight + scrollY; y < panelHeight; y += imgHeight) {
-            for (int x = 0; x < getWidth(); x += cachedTintedImage.getWidth()) {
-                g2d.drawImage(cachedTintedImage, x, y, this);
+        g.setColor(isBlackDots ? Color.BLACK : Color.WHITE);
+
+        int totalCols = getWidth() / dotSpacing + 2;
+
+        for (int row = 0; row < rowsVisible; row++) {
+            for (int col = 0; col < totalCols; col++) {
+                int x = col * dotSpacing + dotSpacing / 2 - dotSize / 2;
+                int y = row * dotSpacing + dotSpacing / 2 - dotSize / 2;
+                g.fillOval(x, y, dotSize, dotSize);
             }
         }
-
-        g2d.dispose();
-    }
-
-    private BufferedImage createTintedImage() {
-        int w = backgroundImage.getWidth();
-        int h = backgroundImage.getHeight();
-
-        if (cachedTintedImage == null ||
-                cachedTintedImage.getWidth() != w ||
-                cachedTintedImage.getHeight() != h) {
-            cachedTintedImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-        }
-
-        Graphics2D g = cachedTintedImage.createGraphics();
-        g.drawImage(backgroundImage, 0, 0, null);
-
-        float time = (System.currentTimeMillis() % 20000) / 20000f;
-        Color startColor = Color.getHSBColor(time, 1.0f, 1.0f);
-        Color endColor = Color.getHSBColor((time + 0.33f) % 1f, 1.0f, 1.0f);
-        GradientPaint gp = new GradientPaint(0, scrollY, startColor, 0, scrollY + h, endColor);
-
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setComposite(AlphaComposite.SrcAtop);
-        g.setPaint(gp);
-        g.fillRect(0, 0, w, h);
-        g.dispose();
-
-        return cachedTintedImage;
     }
 }
