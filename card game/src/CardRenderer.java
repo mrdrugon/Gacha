@@ -4,7 +4,6 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 
 public class CardRenderer {
     private static BufferedImage metallicTexture;
@@ -202,7 +201,7 @@ public class CardRenderer {
         return tinted;
     }
 
-    private static Color getCardColor(ICard card) {
+    public static Color getCardColor(ICard card) {
         switch (card.getName()) {
             case "Red": return Color.RED;
             case "Azure Guardian": return Color.BLUE;

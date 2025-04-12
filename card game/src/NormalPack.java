@@ -1,5 +1,4 @@
 import java.util.*;
-import java.util.function.Function;
 
 final class NormalPack implements Pack {
     private static final Random rand = new Random();

@@ -48,7 +48,6 @@ public class ShopGUI {
             Pack pack = PackFactory.createPack(type);
             java.util.List<ICard> newCards = pack.openPack();
             main.getInventory().addCards(newCards);
-            new PackOpeningGUI(newCards);
         } else {
             main.log("Not enough points!");
         }

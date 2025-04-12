@@ -8,6 +8,7 @@ public class Main extends JFrame {
     private Inventory inventory;
     private int playerPoints;
     private MainMenuGUI mainMenu;
+    private InventoryGUI inventoryGUI;
 
     public Main() {
         inventory = new Inventory();
@@ -26,9 +27,13 @@ public class Main extends JFrame {
         JPanel authPanel = buildAuthPanel();
         cardPanel.add(authPanel, "auth");
 
-        // Main Menu Panel
         mainMenu = new MainMenuGUI("Player", this);
-        cardPanel.add(mainMenu, "mainMenu");
+        inventoryGUI = new InventoryGUI(inventory, this);
+
+        cardPanel.add(mainMenu, "MainMenu");
+        cardPanel.add(inventoryGUI.getPanel(), "Inventory");
+
+        cardLayout.show(cardPanel, "MainMenu");
 
         logArea = new JTextArea(0, 0);
         logArea.setEditable(false);
@@ -173,16 +178,32 @@ public class Main extends JFrame {
     }
 
     public void openPack() {
-        // Enforce factory usage.
         Pack pack = PackFactory.createPack(PackType.NORMAL);
         java.util.List<ICard> newCards = pack.openPack();
         inventory.addCards(newCards);
-        new PackOpeningGUI(newCards);
+
+        // Declare the overlay as an array so we can access it inside the lambda
+        final PackOpeningPanel[] overlay = new PackOpeningPanel[1];
+
+        overlay[0] = new PackOpeningPanel(newCards, () -> {
+            getLayeredPane().remove(overlay[0]);
+            getLayeredPane().repaint();
+        });
+
+        overlay[0].setBounds(0, 0, getWidth(), getHeight());
+        getLayeredPane().add(overlay[0], JLayeredPane.POPUP_LAYER);
+        overlay[0].requestFocusInWindow();
     }
 
-
     public void openInventory() {
-        new InventoryGUI(inventory);
+        cardPanel.remove(inventoryGUI.getPanel()); // Remove old panel
+        inventoryGUI = new InventoryGUI(inventory, this); // Recreate GUI with latest inventory
+        cardPanel.add(inventoryGUI.getPanel(), "Inventory"); // Add new one
+        cardLayout.show(cardPanel, "Inventory");
+    }
+
+    public void openMainMenu() {
+        cardLayout.show(cardPanel, "MainMenu");
     }
 
     public void startBattle() {
