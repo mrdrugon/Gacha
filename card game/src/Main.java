@@ -202,6 +202,17 @@ public class Main extends JFrame {
         cardLayout.show(cardPanel, "Inventory");
     }
 
+    public void openShop() {
+        ShopPanel shopPanel = new ShopPanel(this, inventory, playerPoints);
+        cardPanel.add(shopPanel, "Shop");
+        cardLayout.show(cardPanel, "Shop");
+    }
+
+    public void setPlayerPoints(int points) {
+        this.playerPoints = points;
+        log("Player points updated to: " + playerPoints);
+    }
+
     public void openMainMenu() {
         cardLayout.show(cardPanel, "MainMenu");
     }

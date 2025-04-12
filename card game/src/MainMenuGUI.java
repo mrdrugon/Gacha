@@ -116,7 +116,7 @@ public class MainMenuGUI extends JPanel {
         add(inventoryButton);
 
         // Create and position the Store button.
-        storeButton = new JButton("STORE", storeIcon);
+        storeButton = new JButton("", storeIcon);
         storeButton.setBounds(storeX, storeY, storeWidth, storeHeight);
         styleButton(storeButton, (int)(20 * screenWidth / baseWidth));
         add(storeButton);
@@ -130,7 +130,7 @@ public class MainMenuGUI extends JPanel {
         // Set up action listeners for the buttons.
         battleButton.addActionListener(e -> mainFrame.startBattle());
         inventoryButton.addActionListener(e -> mainFrame.openInventory());
-        storeButton.addActionListener(e -> new ShopGUI(mainFrame));
+        storeButton.addActionListener(e -> mainFrame.openShop());
         exitButton.addActionListener(e -> System.exit(0));
 
         // Add hover effects to the buttons.
