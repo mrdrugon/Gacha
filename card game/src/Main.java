@@ -206,6 +206,7 @@ public class Main extends JFrame {
         ShopPanel shopPanel = new ShopPanel(this, inventory, playerPoints);
         cardPanel.add(shopPanel, "Shop");
         cardLayout.show(cardPanel, "Shop");
+        cardPanel.revalidate();       cardPanel.repaint();
     }
 
     public void setPlayerPoints(int points) {
@@ -222,10 +223,14 @@ public class Main extends JFrame {
             log("You need 5 cards in your deck to battle!");
             return;
         }
+
         // Create enemy deck using factory.
         Pack enemyPack = PackFactory.createPack(PackType.NORMAL);
         java.util.List<ICard> enemyDeck = enemyPack.openPack();
-        new BattleGUI(inventory.getDeck().getDeck(), enemyDeck, this);
+
+        BattleGUI battlePanel = new BattleGUI(inventory.getDeck().getDeck(), enemyDeck, this);
+        cardPanel.add(battlePanel, "Battle");
+        cardLayout.show(cardPanel, "Battle");
     }
 
     public void battleResult(String outcome) {

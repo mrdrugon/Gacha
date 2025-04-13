@@ -1,5 +1,8 @@
 public enum PackType {
     NORMAL,
-    RARE,
-    LEGENDARY;
+    GEM_STONES,
+    METAL,
+    BLACK_WHITE,
+    FOREST,
+    OCEAN
 }

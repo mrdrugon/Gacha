@@ -6,20 +6,22 @@ import java.util.List;
 
 public class ShopPanel extends JPanel {
     private final Main main;
-    private final List<PackType> packTypes = List.of(PackType.NORMAL, PackType.RARE, PackType.LEGENDARY);
+    private final List<PackType> packTypes = List.of(PackType.NORMAL, PackType.METAL, PackType.GEM_STONES, PackType.FOREST, PackType.OCEAN, PackType.BLACK_WHITE);
     private final String[] packImagePaths = {
+            "card game/cards/pack.png",
+            "card game/cards/pack.png",
+            "card game/cards/pack.png",
             "card game/cards/pack.png",
             "card game/cards/pack.png",
             "card game/cards/pack.png"
     };
-    private final int[] packPrices = {10, 30, 50};
+    private final int[] packPrices = {10, 10, 10, 10, 10, 10};
 
     private JLabel pointsLabel;
 
     public ShopPanel(Main main, Inventory inventory, int playerPoints) {
         this.main = main;
         setLayout(null);
-        setBackground(Color.BLACK);
 
         // Fullscreen resolution
         int screenWidth = 1920;
@@ -40,7 +42,6 @@ public class ShopPanel extends JPanel {
 
         // Scrollable panel to hold pack options
         JPanel packScrollPanel = new JPanel(null);
-        packScrollPanel.setBackground(Color.DARK_GRAY);
         int packWidth = 600;
         int packHeight = 900;
         int gap = 40;
@@ -76,6 +77,7 @@ public class ShopPanel extends JPanel {
                         List<ICard> newCards = pack.openPack();
                         main.getInventory().addCards(newCards);
                         main.log("Bought " + packTypes.get(index) + " pack for " + cost + " points.");
+                        main.openPack();
                     } else {
                         main.log("Not enough points.");
                     }

@@ -3,10 +3,16 @@ public class PackFactory {
         switch (type) {
             case NORMAL:
                 return new NormalPack();
-            case RARE:
-                return new RarePack();
-            case LEGENDARY:
-                return new LegendaryPack();
+            case GEM_STONES:
+                return new GemStonesPack();
+            case METAL:
+                return new MetalPack();
+            case BLACK_WHITE:
+                return new BlackWhitePack();
+            case FOREST:
+                return new ForestPack();
+            case OCEAN:
+                return new OceanPack();
             default:
                 throw new IllegalArgumentException("Invalid pack type: " + type);
         }

@@ -97,11 +97,11 @@ public class MainMenuGUI extends JPanel {
         add(currencyLabel);
 
         // Load images for the buttons (ensure that the image paths are correct)
-        ImageIcon battleIcon = resizeImage("card game/cards/Battle.png", battleWidth, battleHeight);
-        ImageIcon inventoryIcon = resizeImage("card game/cards/Inventory.png", inventoryWidth, inventoryHeight);
-        ImageIcon storeIcon = resizeImage("card game/cards/Store.png", storeWidth, storeHeight);
+        ImageIcon battleIcon = resizeImage("card game/cards/Battle_Button.png", battleWidth, battleHeight);
+        ImageIcon inventoryIcon = resizeImage("card game/cards/Inventory_Button.png", inventoryWidth, inventoryHeight);
+        ImageIcon storeIcon = resizeImage("card game/cards/Shop_Button.png", storeWidth, storeHeight);
         // For the exit button, using the Battle image as a placeholder
-        ImageIcon exitIcon = resizeImage("card game/cards/Battle.png", exitWidth, exitHeight);
+        ImageIcon exitIcon = resizeImage("card game/cards/Exit_Button.png", exitWidth, exitHeight);
 
         // Create and position the Battle button.
         battleButton = new JButton("BATTLE", battleIcon);
@@ -110,7 +110,7 @@ public class MainMenuGUI extends JPanel {
         add(battleButton);
 
         // Create and position the Inventory button.
-        inventoryButton = new JButton("INVENTORY", inventoryIcon);
+        inventoryButton = new JButton("", inventoryIcon);
         inventoryButton.setBounds(inventoryX, inventoryY, inventoryWidth, inventoryHeight);
         styleButton(inventoryButton, (int)(20 * screenWidth / baseWidth));
         add(inventoryButton);
@@ -122,7 +122,7 @@ public class MainMenuGUI extends JPanel {
         add(storeButton);
 
         // Create and position the Exit button.
-        exitButton = new JButton("EXIT", exitIcon);
+        exitButton = new JButton("", exitIcon);
         exitButton.setBounds(exitX, exitY, exitWidth, exitHeight);
         styleButton(exitButton, (int)(20 * screenWidth / baseWidth));
         add(exitButton);

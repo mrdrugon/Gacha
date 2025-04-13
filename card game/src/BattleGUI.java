@@ -4,8 +4,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class BattleGUI {
-    private JFrame frame;
+public class BattleGUI extends JPanel{
     private JTextArea battleLog;
     private JLayeredPane playerDeckPanel;
     private Map<Integer, JButton> cardButtonsMap;
@@ -29,22 +28,23 @@ public class BattleGUI {
 
         resetPlayerCards();
 
-        frame = new JFrame("Battle");
-        frame.setSize(800, 500);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout());
+        setPreferredSize(new Dimension(800, 500));
+
+        battleLog = new JTextArea();
+        battleLog.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(battleLog);
+        add(scrollPane, BorderLayout.CENTER);
+
+        playerDeckPanel = new JLayeredPane();
+        playerDeckPanel.setPreferredSize(new Dimension(400, 120));
+        add(playerDeckPanel, BorderLayout.SOUTH);
 
         JPanel panel = new JPanel(new BorderLayout());
 
         battleLog = new JTextArea();
         battleLog.setEditable(false);
         panel.add(new JScrollPane(battleLog), BorderLayout.CENTER);
-
-        playerDeckPanel = new JLayeredPane();
-        playerDeckPanel.setPreferredSize(new Dimension(400, 120));
-        frame.add(playerDeckPanel, BorderLayout.SOUTH);
-
-        frame.add(panel);
-        frame.setVisible(true);
 
         log("Battle started! Choose a card to play.");
         updatePlayerDeckUI();
@@ -112,9 +112,11 @@ public class BattleGUI {
         CardPanel opponentCardPanel = new CardPanel(opponentCard);
         BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
 
-        frame.getContentPane().add(battlePanel, BorderLayout.CENTER);
-        frame.revalidate();
-        frame.repaint();
+        removeAll();
+        add(battlePanel, BorderLayout.CENTER);
+        add(playerDeckPanel, BorderLayout.SOUTH);
+        revalidate();
+        repaint();
 
         SwingUtilities.invokeLater(() -> {
             animateBattle(playerCardPanel, opponentCardPanel, () -> {
@@ -126,7 +128,7 @@ public class BattleGUI {
                     log("Battle Over!");
                     disableAllButtons();
                     resetPlayerCards();
-                    frame.dispose();
+                    main.openMainMenu();
                 }
             });
         });
@@ -255,7 +257,7 @@ public class BattleGUI {
         }
         if (playerLost || opponentLost) {
             resetPlayerCards();
-            frame.dispose();
+            main.openMainMenu();
         }
     }
 
