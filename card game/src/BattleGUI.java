@@ -260,21 +260,15 @@ public class BattleGUI extends JPanel{
         boolean opponentLost = battle.isOpponentDefeated();
 
         if (playerLost && opponentLost) {
-            log("The battle ended in a tie!");
             disableAllButtons();
-            main.battleResult("tie");
+            main.openMainMenu();
         } else if (playerLost) {
-            log("All your cards are defeated! Battle over.");
             disableAllButtons();
-            main.battleResult("loss");
+            main.openMainMenu();
         } else if (opponentLost) {
             log("You won the battle! Congratulations!");
             disableAllButtons();
             main.battleResult("win");
-        }
-        if (playerLost || opponentLost) {
-            resetPlayerCards();
-            main.openMainMenu();
         }
     }
 

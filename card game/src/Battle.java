@@ -247,13 +247,7 @@ public class Battle {
                 break;
             }
         }
-        if (playerDefeated && opponentDefeated) {
-            return "tie";
-        } else if (playerDefeated) {
-            return "loss";
-        } else {
             return "win";
-        }
     }
 
     public ICard getNextOpponentCard() {

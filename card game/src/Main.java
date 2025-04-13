@@ -243,40 +243,12 @@ public class Main extends JFrame {
         cardLayout.show(cardPanel, "Battle");
     }
 
-    public void startPvE() {
-        if (inventory.getDeck().getDeck().size() < Deck.DECK_SIZE) {
-            log("You need 5 cards in your deck to battle!");
-            return;
-        }
-
-        // Create enemy deck using factory.
-        Pack enemyPack = PackFactory.createPack(PackType.NORMAL);
-        java.util.List<ICard> enemyDeck = enemyPack.openPack();
-
-        BattleGUI battlePanel = new BattleGUI(inventory.getDeck().getDeck(), enemyDeck, this);
-        cardPanel.add(battlePanel, "Battle");
-        cardLayout.show(cardPanel, "Battle");
-    }
-
-   /* public void startPvP() {
-        // TEMP: Use AI deck for both sides, but later this could support real multiplayer
-        List<ICard> playerDeck = deckManager.getPlayerDeck();
-        List<ICard> enemyDeck = deckManager.getPlayerDeck(); // simulate second player
-        mainMenuGUI.setScreen(new BattleGUI(playerDeck, enemyDeck, this));
-    }
-
-    */
-
     public void battleResult(String outcome) {
         if (outcome.equals("win")) {
             towerManager.grantRewards();
             towerManager.advanceLevel();
             startTowerBattle();
-        } else if (outcome.equals("loss")) {
-            towerManager.grantRewards();
-            towerManager.resetProgress();
-            openMainMenu();
-        } else if (outcome.equals("tie")) {
+        } else{
             towerManager.grantRewards();
             towerManager.resetProgress();
             openMainMenu();
