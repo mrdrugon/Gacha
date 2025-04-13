@@ -128,7 +128,7 @@ public class MainMenuGUI extends JPanel {
         add(exitButton);
 
         // Set up action listeners for the buttons.
-        battleButton.addActionListener(e -> mainFrame.startBattle());
+        battleButton.addActionListener(e -> mainFrame.openBattleModeSelection());
         inventoryButton.addActionListener(e -> mainFrame.openInventory());
         storeButton.addActionListener(e -> mainFrame.openShop());
         exitButton.addActionListener(e -> System.exit(0));

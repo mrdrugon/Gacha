@@ -13,6 +13,7 @@ public class BattleGUI extends JPanel{
     private List<ICard> playerDeck;
     private Set<Integer> deadCardsIds;
     private Map<Integer, Integer> originalHealthMap;
+    private boolean isTurnActive = true;
 
     public BattleGUI(List<ICard> playerDeck, List<ICard> enemyDeck, Main main) {
         this.main = main;
@@ -37,7 +38,7 @@ public class BattleGUI extends JPanel{
         add(scrollPane, BorderLayout.CENTER);
 
         playerDeckPanel = new JLayeredPane();
-        playerDeckPanel.setPreferredSize(new Dimension(400, 120));
+        playerDeckPanel.setPreferredSize(new Dimension(400, 220));
         add(playerDeckPanel, BorderLayout.SOUTH);
 
         JPanel panel = new JPanel(new BorderLayout());
@@ -47,7 +48,9 @@ public class BattleGUI extends JPanel{
         panel.add(new JScrollPane(battleLog), BorderLayout.CENTER);
 
         log("Battle started! Choose a card to play.");
-        updatePlayerDeckUI();
+
+        // Fix: Delay until panel is fully laid out
+        SwingUtilities.invokeLater(this::updatePlayerDeckUI);
     }
 
     private void updatePlayerDeckUI() {
@@ -55,9 +58,9 @@ public class BattleGUI extends JPanel{
         cardButtonsMap.clear();
         deadCardsIds.clear();
 
-        int xOffset = 100;
-        int cardWidth = 80;
-        int cardHeight = 120;
+        int xOffset = 200;
+        int cardWidth = 145;
+        int cardHeight = 220;
 
         List<ICard> aliveCards = new ArrayList<>();
         for (ICard card : playerDeck) {
@@ -77,6 +80,7 @@ public class BattleGUI extends JPanel{
             cardPanel.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    if (!isTurnActive) return; // block clicks during battle
                     playRound(card, cardPanel);
                 }
             });
@@ -100,6 +104,8 @@ public class BattleGUI extends JPanel{
             return;
         }
 
+        isTurnActive = false; // Disable clicks
+
         ICard opponentCard = battle.getNextOpponentCard();
         if (opponentCard == null) {
             log("No more opponent cards left!");
@@ -107,7 +113,6 @@ public class BattleGUI extends JPanel{
         }
 
         BattlePanel battlePanel = new BattlePanel();
-
         CardPanel playerCardPanel = new CardPanel(selectedCard);
         CardPanel opponentCardPanel = new CardPanel(opponentCard);
         BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
@@ -123,6 +128,8 @@ public class BattleGUI extends JPanel{
                 boolean battleOver = battle.playNextRound();
                 updatePlayerDeckUI();
                 checkForBattleEnd();
+
+                isTurnActive = true; // Re-enable clicks after battle
 
                 if (battleOver) {
                     log("Battle Over!");
@@ -140,9 +147,9 @@ public class BattleGUI extends JPanel{
      * - Removed duplicate onComplete.run() from completeTimer.
      */
     private void animateBattle(CardPanel playerCard, CardPanel opponentCard, Runnable onComplete) {
-        int moveDistance = 160;      // Distance cards move forward/backward
-        int shakeDistance = 10;      // Shake distance
-        int shakeDuration = 100;     // Shake duration in milliseconds
+        int moveDistance = 60; // adjust for better animation balance
+        int shakeDistance = 10;// Shake distance
+        int shakeDuration = 100;// Shake duration in milliseconds
         int animationDuration = 400; // Duration for the move forward
 
         playerCard.setShowHealthBar(true);
@@ -159,9 +166,19 @@ public class BattleGUI extends JPanel{
         Container parent = playerCard.getParent();
         parent.setLayout(null);
 
-        // Initial positions.
-        Point playerStart = new Point(100, 100);
-        Point opponentStart = new Point(500, 100);
+        int cardWidth = playerCard.getWidth();
+        int cardHeight = playerCard.getHeight();
+        int spacing = 80; // Space between the two cards
+
+        // Calculate center based on parent size
+        int parentWidth = parent.getWidth();
+        int centerX = parentWidth / 2;
+        int centerY = parent.getHeight() / 2;
+
+        // Position cards centered horizontally with spacing
+        Point playerStart = new Point(centerX - spacing - cardWidth, centerY - cardHeight / 2);
+        Point opponentStart = new Point(centerX + spacing, centerY - cardHeight / 2);
+
         playerCard.setBounds(playerStart.x, playerStart.y, playerCard.getWidth(), playerCard.getHeight());
         opponentCard.setBounds(opponentStart.x, opponentStart.y, opponentCard.getWidth(), opponentCard.getHeight());
 
@@ -285,7 +302,7 @@ public class BattleGUI extends JPanel{
 
         public CardPanel(ICard card) {
             this.card = card;
-            setPreferredSize(new Dimension(80, 120));
+            setPreferredSize(new Dimension(145, 220));
             setOpaque(false);
         }
 

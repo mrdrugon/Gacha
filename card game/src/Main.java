@@ -1,5 +1,11 @@
 import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.util.List;
 
 public class Main extends JFrame {
     private CardLayout cardLayout;
@@ -9,6 +15,8 @@ public class Main extends JFrame {
     private int playerPoints;
     private MainMenuGUI mainMenu;
     private InventoryGUI inventoryGUI;
+    private BattleTowerManager towerManager = new BattleTowerManager();
+
 
     public Main() {
         inventory = new Inventory();
@@ -171,6 +179,16 @@ public class Main extends JFrame {
         cardLayout.show(cardPanel, "game");
     }
 
+
+    public void startTowerBattle() {
+        List<ICard> playerDeck = inventory.getDeck().getDeck(); // Or however you manage selected cards
+        List<ICard> enemyDeck = towerManager.generateOpponentDeck();
+        BattleGUI towerBattle = new BattleGUI(playerDeck, enemyDeck, this);
+        setContentPane(towerBattle);
+        revalidate();
+        repaint();
+    }
+
     private JPanel buildGamePanel() {
         JPanel panel = new JPanel();
         panel.add(new JLabel("Game Screen"));
@@ -206,7 +224,8 @@ public class Main extends JFrame {
         ShopPanel shopPanel = new ShopPanel(this, inventory, playerPoints);
         cardPanel.add(shopPanel, "Shop");
         cardLayout.show(cardPanel, "Shop");
-        cardPanel.revalidate();       cardPanel.repaint();
+        cardPanel.revalidate();
+        cardPanel.repaint();
     }
 
     public void setPlayerPoints(int points) {
@@ -218,7 +237,13 @@ public class Main extends JFrame {
         cardLayout.show(cardPanel, "MainMenu");
     }
 
-    public void startBattle() {
+    public void openBattleModeSelection() {
+        BattleModePanel battlePanel = new BattleModePanel(this);
+        cardPanel.add(battlePanel, "Battle");
+        cardLayout.show(cardPanel, "Battle");
+    }
+
+    public void startPvE() {
         if (inventory.getDeck().getDeck().size() < Deck.DECK_SIZE) {
             log("You need 5 cards in your deck to battle!");
             return;
@@ -233,16 +258,28 @@ public class Main extends JFrame {
         cardLayout.show(cardPanel, "Battle");
     }
 
+   /* public void startPvP() {
+        // TEMP: Use AI deck for both sides, but later this could support real multiplayer
+        List<ICard> playerDeck = deckManager.getPlayerDeck();
+        List<ICard> enemyDeck = deckManager.getPlayerDeck(); // simulate second player
+        mainMenuGUI.setScreen(new BattleGUI(playerDeck, enemyDeck, this));
+    }
+
+    */
+
     public void battleResult(String outcome) {
         if (outcome.equals("win")) {
-            log("You won! You get a new pack.");
-            openPack();
+            towerManager.grantRewards();
+            towerManager.advanceLevel();
+            startTowerBattle();
         } else if (outcome.equals("loss")) {
-            log("You lost! You earn points.");
-            playerPoints += 10;
+            towerManager.grantRewards();
+            towerManager.resetProgress();
+            openMainMenu();
         } else if (outcome.equals("tie")) {
-            log("The battle ended in a tie! You get half rewards.");
-            playerPoints += 5;
+            towerManager.grantRewards();
+            towerManager.resetProgress();
+            openMainMenu();
         }
     }
 
