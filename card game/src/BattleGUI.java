@@ -10,14 +10,18 @@ public class BattleGUI extends JPanel{
     private Map<Integer, JButton> cardButtonsMap;
     private Battle battle;
     private Main main;
+    private BattleTowerManager towerManager;
+    private MainMenuGUI mainMenuGUI;
     private List<ICard> playerDeck;
     private Set<Integer> deadCardsIds;
     private Map<Integer, Integer> originalHealthMap;
     private boolean isTurnActive = true;
 
-    public BattleGUI(List<ICard> playerDeck, List<ICard> enemyDeck, Main main) {
+    public BattleGUI(List<ICard> playerDeck, List<ICard> enemyDeck, Main main, BattleTowerManager towerManager, MainMenuGUI mainMenuGUI) {
         this.main = main;
         this.playerDeck = playerDeck;
+        this.towerManager = towerManager;
+        this.mainMenuGUI = mainMenuGUI;
         this.battle = new Battle(playerDeck, enemyDeck);
         this.cardButtonsMap = new HashMap<>();
         this.deadCardsIds = new HashSet<>();
@@ -32,24 +36,42 @@ public class BattleGUI extends JPanel{
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(800, 500));
 
+        // --- TOP PANEL (always visible)
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.setOpaque(false); // transparent background
+        JButton exitButton = new JButton("Exit Tower");
+
+        exitButton.addActionListener(e -> {
+            towerManager.exitTower();
+
+            TowerCompletionPanel towerPanel = new TowerCompletionPanel(
+                    BattleTowerManager.getTotalPointsEarned(),
+                    towerManager.getEarnedPacks(),
+                    () -> {
+                        towerManager.resetProgress();
+                        main.openMainMenu();
+                    }
+            );
+
+            main.showTowerCompletionScreen();
+        });
+
+        topPanel.add(exitButton);
+        add(topPanel, BorderLayout.NORTH); // always in the NORTH region
+
+        // --- Battle Log (center)
         battleLog = new JTextArea();
         battleLog.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(battleLog);
         add(scrollPane, BorderLayout.CENTER);
 
+        // --- Player deck panel (bottom)
         playerDeckPanel = new JLayeredPane();
         playerDeckPanel.setPreferredSize(new Dimension(400, 220));
         add(playerDeckPanel, BorderLayout.SOUTH);
 
-        JPanel panel = new JPanel(new BorderLayout());
-
-        battleLog = new JTextArea();
-        battleLog.setEditable(false);
-        panel.add(new JScrollPane(battleLog), BorderLayout.CENTER);
-
         log("Battle started! Choose a card to play.");
 
-        // Fix: Delay until panel is fully laid out
         SwingUtilities.invokeLater(this::updatePlayerDeckUI);
     }
 
@@ -117,9 +139,9 @@ public class BattleGUI extends JPanel{
         CardPanel opponentCardPanel = new CardPanel(opponentCard);
         BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
 
-        removeAll();
+        remove(battleLog.getParent()); // remove the JScrollPane (log area)
         add(battlePanel, BorderLayout.CENTER);
-        add(playerDeckPanel, BorderLayout.SOUTH);
+
         revalidate();
         repaint();
 
@@ -135,7 +157,6 @@ public class BattleGUI extends JPanel{
                     log("Battle Over!");
                     disableAllButtons();
                     resetPlayerCards();
-                    main.openMainMenu();
                 }
             });
         });
@@ -260,17 +281,21 @@ public class BattleGUI extends JPanel{
         boolean opponentLost = battle.isOpponentDefeated();
 
         if (playerLost && opponentLost) {
+            log("It's a tie!");
             disableAllButtons();
-            main.openMainMenu();
+            main.battleResult("tie"); // <-- Add this
         } else if (playerLost) {
+            log("You lost the battle.");
             disableAllButtons();
-            main.openMainMenu();
+            main.battleResult("lose"); // <-- And this
         } else if (opponentLost) {
             log("You won the battle! Congratulations!");
             disableAllButtons();
             main.battleResult("win");
         }
     }
+
+
 
     private void disableAllButtons() {
         for (JButton button : cardButtonsMap.values()) {

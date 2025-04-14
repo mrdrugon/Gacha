@@ -12,7 +12,6 @@ public class Main extends JFrame {
     private JPanel cardPanel;
     private JTextArea logArea;
     private Inventory inventory;
-    private int playerPoints;
     private MainMenuGUI mainMenu;
     private InventoryGUI inventoryGUI;
     private BattleTowerManager towerManager = new BattleTowerManager();
@@ -20,7 +19,6 @@ public class Main extends JFrame {
 
     public Main() {
         inventory = new Inventory();
-        playerPoints = 0;
 
         setTitle("Gacha Card Game");
         setSize(600, 500);
@@ -173,26 +171,15 @@ public class Main extends JFrame {
         return panel;
     }
 
-    public void openGamePanel() {
-        JPanel gamePanel = buildGamePanel();
-        cardPanel.add(gamePanel, "game");
-        cardLayout.show(cardPanel, "game");
-    }
-
 
     public void startTowerBattle() {
         List<ICard> playerDeck = inventory.getDeck().getDeck(); // Or however you manage selected cards
         List<ICard> enemyDeck = towerManager.generateOpponentDeck();
-        BattleGUI towerBattle = new BattleGUI(playerDeck, enemyDeck, this);
-        setContentPane(towerBattle);
+        BattleGUI towerBattle = new BattleGUI(playerDeck, enemyDeck, this, towerManager, mainMenu);
+        cardPanel.add(towerBattle, "TowerBattle");
+        cardLayout.show(cardPanel, "TowerBattle");
         revalidate();
         repaint();
-    }
-
-    private JPanel buildGamePanel() {
-        JPanel panel = new JPanel();
-        panel.add(new JLabel("Game Screen"));
-        return panel;
     }
 
     public void openPack() {
@@ -221,16 +208,11 @@ public class Main extends JFrame {
     }
 
     public void openShop() {
-        ShopPanel shopPanel = new ShopPanel(this, inventory, playerPoints);
+        ShopPanel shopPanel = new ShopPanel(this, inventory, BattleTowerManager.totalPointsEarned);
         cardPanel.add(shopPanel, "Shop");
         cardLayout.show(cardPanel, "Shop");
         cardPanel.revalidate();
         cardPanel.repaint();
-    }
-
-    public void setPlayerPoints(int points) {
-        this.playerPoints = points;
-        log("Player points updated to: " + playerPoints);
     }
 
     public void openMainMenu() {
@@ -243,33 +225,41 @@ public class Main extends JFrame {
         cardLayout.show(cardPanel, "Battle");
     }
 
-    public void battleResult(String outcome) {
-        if (outcome.equals("win")) {
-            towerManager.grantRewards();
-            towerManager.advanceLevel();
-            startTowerBattle();
-        } else{
-            towerManager.grantRewards();
-            towerManager.resetProgress();
+    public void showTowerCompletionScreen() {
+        int pointsEarned = BattleTowerManager.getTotalPointsEarned();
+        List<Pack> packsEarned = towerManager.getEarnedPacks(); // You may need to implement this
+
+        final TowerCompletionPanel[] overlay = new TowerCompletionPanel[1];
+
+        overlay[0] = new TowerCompletionPanel(pointsEarned, packsEarned, () -> {
+            getLayeredPane().remove(overlay[0]);
+            getLayeredPane().repaint();
             openMainMenu();
+        });
+
+        overlay[0].setBounds(0, 0, getWidth(), getHeight());
+        getLayeredPane().add(overlay[0], JLayeredPane.POPUP_LAYER);
+        overlay[0].requestFocusInWindow();
+    }
+
+    public void battleResult(String result) {
+        switch (result) {
+            case "win":
+                towerManager.grantRewards();
+                towerManager.advanceLevel();
+                startTowerBattle();
+                break;
+            case "lose":
+            case "tie":
+                towerManager.grantRewards();
+                showTowerCompletionScreen();
+                towerManager.resetProgress();
+                openMainMenu();
+                break;
         }
     }
-
-    public int getPlayerPoints() {
-        return playerPoints;
-    }
-
-    public void addPlayerPoints(int amount) {
-        playerPoints += amount;
-        log("You now have " + playerPoints + " points.");
-    }
-
     public Inventory getInventory() {
         return inventory;
-    }
-
-    public void setLogArea(JTextArea logArea) {
-        this.logArea = logArea;
     }
 
     public void log(String message) {

@@ -28,7 +28,7 @@ public class ShopPanel extends JPanel {
         int screenHeight = 1080;
 
         // Top UI: Points + Back Button
-        pointsLabel = new JLabel("Points: " + main.getPlayerPoints(), SwingConstants.CENTER);
+        pointsLabel = new JLabel("Points: " + BattleTowerManager.getTotalPointsEarned(), SwingConstants.CENTER);
         pointsLabel.setForeground(Color.WHITE);
         pointsLabel.setFont(new Font("Arial", Font.BOLD, 28));
         pointsLabel.setBounds(0, 20, screenWidth, 40);
@@ -70,8 +70,8 @@ public class ShopPanel extends JPanel {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     int cost = packPrices[index];
-                    if (main.getPlayerPoints() >= cost) {
-                        main.addPlayerPoints(-cost);
+                    if (BattleTowerManager.getTotalPointsEarned() >= cost) {
+                        BattleTowerManager.getTotalPointsEarned();
                         updatePoints();
                         Pack pack = PackFactory.createPack(packTypes.get(index));
                         List<ICard> newCards = pack.openPack();
@@ -99,6 +99,6 @@ public class ShopPanel extends JPanel {
     }
 
     private void updatePoints() {
-        pointsLabel.setText("Points: " + main.getPlayerPoints());
+        pointsLabel.setText("Points: " + BattleTowerManager.getTotalPointsEarned());
     }
 }

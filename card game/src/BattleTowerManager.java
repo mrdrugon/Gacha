@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class BattleTowerManager {
     private int currentLevel;
-    private int totalPointsEarned;
+    public static int totalPointsEarned;
     private List<Pack> earnedPacks;
 
     private final Random random = new Random();
@@ -19,7 +19,7 @@ public class BattleTowerManager {
         return currentLevel;
     }
 
-    public int getTotalPointsEarned(){
+    public static int getTotalPointsEarned(){
         return totalPointsEarned;
     }
 
@@ -35,6 +35,9 @@ public class BattleTowerManager {
         currentLevel = 1;
         totalPointsEarned = 0;
         earnedPacks.clear();
+    }
+
+    public void exitTower(){
     }
 
     public int grantRewards(){
