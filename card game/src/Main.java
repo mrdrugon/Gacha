@@ -226,16 +226,27 @@ public class Main extends JFrame {
     }
 
     public void showTowerCompletionScreen() {
-        int pointsEarned = BattleTowerManager.getTotalPointsEarned();
-        List<Pack> packsEarned = towerManager.getEarnedPacks(); // You may need to implement this
+        int pointsEarned = BattleTowerManager.getPoints();
+        List<Pack> packsEarned = towerManager.getEarnedPacks();
 
         final TowerCompletionPanel[] overlay = new TowerCompletionPanel[1];
 
-        overlay[0] = new TowerCompletionPanel(pointsEarned, packsEarned, () -> {
-            getLayeredPane().remove(overlay[0]);
-            getLayeredPane().repaint();
-            openMainMenu();
-        });
+        overlay[0] = new TowerCompletionPanel(
+                pointsEarned,
+                packsEarned,
+                () -> { // Continue to next level
+                    getLayeredPane().remove(overlay[0]);
+                    getLayeredPane().repaint();
+                    towerManager.advanceLevel();
+                    startTowerBattle();
+                },
+                () -> { // Exit tower
+                    getLayeredPane().remove(overlay[0]);
+                    getLayeredPane().repaint();
+                    towerManager.resetProgress();
+                    openMainMenu();
+                }
+        );
 
         overlay[0].setBounds(0, 0, getWidth(), getHeight());
         getLayeredPane().add(overlay[0], JLayeredPane.POPUP_LAYER);
@@ -245,16 +256,12 @@ public class Main extends JFrame {
     public void battleResult(String result) {
         switch (result) {
             case "win":
-                towerManager.grantRewards();
-                towerManager.advanceLevel();
-                startTowerBattle();
+                towerManager.finalizeRewards();
+                showTowerCompletionScreen(); // Now lets the player decide
                 break;
             case "lose":
             case "tie":
-                towerManager.grantRewards();
                 showTowerCompletionScreen();
-                towerManager.resetProgress();
-                openMainMenu();
                 break;
         }
     }

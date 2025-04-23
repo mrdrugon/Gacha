@@ -7,11 +7,10 @@ import java.util.List;
 public class BattleGUI extends JPanel{
     private JTextArea battleLog;
     private JLayeredPane playerDeckPanel;
+    private JLayeredPane opponentDeckPanel;
     private Map<Integer, JButton> cardButtonsMap;
     private Battle battle;
     private Main main;
-    private BattleTowerManager towerManager;
-    private MainMenuGUI mainMenuGUI;
     private List<ICard> playerDeck;
     private Set<Integer> deadCardsIds;
     private Map<Integer, Integer> originalHealthMap;
@@ -20,8 +19,6 @@ public class BattleGUI extends JPanel{
     public BattleGUI(List<ICard> playerDeck, List<ICard> enemyDeck, Main main, BattleTowerManager towerManager, MainMenuGUI mainMenuGUI) {
         this.main = main;
         this.playerDeck = playerDeck;
-        this.towerManager = towerManager;
-        this.mainMenuGUI = mainMenuGUI;
         this.battle = new Battle(playerDeck, enemyDeck);
         this.cardButtonsMap = new HashMap<>();
         this.deadCardsIds = new HashSet<>();
@@ -36,34 +33,15 @@ public class BattleGUI extends JPanel{
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(800, 500));
 
-        // --- TOP PANEL (always visible)
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topPanel.setOpaque(false); // transparent background
-        JButton exitButton = new JButton("Exit Tower");
-
-        exitButton.addActionListener(e -> {
-            towerManager.exitTower();
-
-            TowerCompletionPanel towerPanel = new TowerCompletionPanel(
-                    BattleTowerManager.getTotalPointsEarned(),
-                    towerManager.getEarnedPacks(),
-                    () -> {
-                        towerManager.resetProgress();
-                        main.openMainMenu();
-                    }
-            );
-
-            main.showTowerCompletionScreen();
-        });
-
-        topPanel.add(exitButton);
-        add(topPanel, BorderLayout.NORTH); // always in the NORTH region
-
         // --- Battle Log (center)
         battleLog = new JTextArea();
         battleLog.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(battleLog);
         add(scrollPane, BorderLayout.CENTER);
+
+        opponentDeckPanel = new JLayeredPane();
+        opponentDeckPanel.setPreferredSize(new Dimension(400, 220));
+        add(opponentDeckPanel, BorderLayout.NORTH);
 
         // --- Player deck panel (bottom)
         playerDeckPanel = new JLayeredPane();
@@ -73,6 +51,7 @@ public class BattleGUI extends JPanel{
         log("Battle started! Choose a card to play.");
 
         SwingUtilities.invokeLater(this::updatePlayerDeckUI);
+        SwingUtilities.invokeLater(this::updateOpponentDeckUI);
     }
 
     private void updatePlayerDeckUI() {
@@ -115,6 +94,37 @@ public class BattleGUI extends JPanel{
         playerDeckPanel.repaint();
     }
 
+    private void updateOpponentDeckUI() {
+        opponentDeckPanel.removeAll();
+        cardButtonsMap.clear();
+        deadCardsIds.clear();
+
+        int xOffset = 200;
+        int cardWidth = 145;
+        int cardHeight = 220;
+
+        List<ICard> aliveCards = new ArrayList<>();
+        for (ICard card : battle.getOpponentDeck()) {
+            if (card.getHealth() > 0) {
+                aliveCards.add(card);
+            }
+        }
+
+        int totalWidth = (aliveCards.size() - 1) * xOffset + cardWidth;
+        int startX = (opponentDeckPanel.getWidth() - totalWidth) / 2;
+
+        for (int i = 0; i < aliveCards.size(); i++) {
+            ICard card = aliveCards.get(i);
+            CardPanel cardPanel = new CardPanel(card);
+            cardPanel.setBounds(startX + i * xOffset, 0, cardWidth, cardHeight);
+            int layer = i;
+            opponentDeckPanel.add(cardPanel, Integer.valueOf(layer));
+        }
+
+        opponentDeckPanel.revalidate();
+        opponentDeckPanel.repaint();
+    }
+
     private void playRound(ICard selectedCard, CardPanel selectedCardPanel) {
         if (selectedCard == null) {
             log("You must select a card first!");
@@ -149,6 +159,7 @@ public class BattleGUI extends JPanel{
             animateBattle(playerCardPanel, opponentCardPanel, () -> {
                 boolean battleOver = battle.playNextRound();
                 updatePlayerDeckUI();
+                updateOpponentDeckUI();
                 checkForBattleEnd();
 
                 isTurnActive = true; // Re-enable clicks after battle
@@ -162,11 +173,6 @@ public class BattleGUI extends JPanel{
         });
     }
 
-    /**
-     * Updated animateBattle method:
-     * - Calls onComplete only once in the final timer (hideCards).
-     * - Removed duplicate onComplete.run() from completeTimer.
-     */
     private void animateBattle(CardPanel playerCard, CardPanel opponentCard, Runnable onComplete) {
         int moveDistance = 60; // adjust for better animation balance
         int shakeDistance = 10;// Shake distance

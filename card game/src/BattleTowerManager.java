@@ -5,6 +5,7 @@ import java.util.Random;
 public class BattleTowerManager {
     private int currentLevel;
     public static int totalPointsEarned;
+    public static int Points;
     private List<Pack> earnedPacks;
 
     private final Random random = new Random();
@@ -15,12 +16,12 @@ public class BattleTowerManager {
         earnedPacks = new ArrayList<>();
     }
 
-    public int getCurrentLevel(){
-        return currentLevel;
-    }
-
     public static int getTotalPointsEarned(){
         return totalPointsEarned;
+    }
+
+    public static int getPoints(){
+        return Points;
     }
 
     public List<Pack> getEarnedPacks(){
@@ -33,25 +34,25 @@ public class BattleTowerManager {
 
     public void resetProgress(){
         currentLevel = 1;
-        totalPointsEarned = 0;
+        Points = 0;
         earnedPacks.clear();
     }
 
-    public void exitTower(){
+    public int previewPoints() {
+        return 10 + (currentLevel - 1) * 5;
     }
 
-    public int grantRewards(){
-        int points = 10 + (currentLevel - 1) * 5;
-        totalPointsEarned += points;
+    public List<Pack> previewPacks() {
+        List<Pack> preview = new ArrayList<>();
+        if (currentLevel % 3 == 0) preview.add(new NormalPack());
+        if (currentLevel % 5 == 0) preview.add(new GemStonesPack());
+        return preview;
+    }
 
-        if (currentLevel % 3 == 0){
-            earnedPacks.add(new NormalPack());
-        }
-
-        if (currentLevel % 5 == 0){
-            earnedPacks.add(new GemStonesPack());
-        }
-        return points;
+    public void finalizeRewards() {
+        totalPointsEarned += previewPoints();
+        Points += previewPoints();
+        earnedPacks.addAll(previewPacks());
     }
 
     public List<ICard> generateOpponentDeck() {
