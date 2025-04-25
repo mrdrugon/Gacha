@@ -148,7 +148,7 @@ public class Main extends JFrame {
                 cardPanel.add(mainMenu, "mainMenu");
 
                 cardLayout.show(cardPanel, "mainMenu");// Switch to main menu
-                openPack();
+                openPack(PackType.NORMAL);
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid login", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -171,7 +171,6 @@ public class Main extends JFrame {
         return panel;
     }
 
-
     public void startTowerBattle() {
         List<ICard> playerDeck = inventory.getDeck().getDeck(); // Or however you manage selected cards
         List<ICard> enemyDeck = towerManager.generateOpponentDeck();
@@ -182,12 +181,15 @@ public class Main extends JFrame {
         repaint();
     }
 
-    public void openPack() {
-        Pack pack = PackFactory.createPack(PackType.NORMAL);
-        java.util.List<ICard> newCards = pack.openPack();
+    public BattleTowerManager getTowerManager(){
+        return towerManager;
+    }
+
+    public void openPack(PackType type) {
+        Pack pack = PackFactory.createPack(type);
+        List<ICard> newCards = pack.openPack();
         inventory.addCards(newCards);
 
-        // Declare the overlay as an array so we can access it inside the lambda
         final PackOpeningPanel[] overlay = new PackOpeningPanel[1];
 
         overlay[0] = new PackOpeningPanel(newCards, () -> {
@@ -208,7 +210,7 @@ public class Main extends JFrame {
     }
 
     public void openShop() {
-        ShopPanel shopPanel = new ShopPanel(this, inventory, BattleTowerManager.totalPointsEarned);
+        ShopPanel shopPanel = new ShopPanel(this, inventory);
         cardPanel.add(shopPanel, "Shop");
         cardLayout.show(cardPanel, "Shop");
         cardPanel.revalidate();
@@ -226,25 +228,26 @@ public class Main extends JFrame {
     }
 
     public void showTowerCompletionScreen() {
-        int pointsEarned = BattleTowerManager.getPoints();
-        List<Pack> packsEarned = towerManager.getEarnedPacks();
+        int pointsEarned = towerManager.previewPoints();
+        List<Pack> packsEarned = towerManager.previewPacks();
 
         final TowerCompletionPanel[] overlay = new TowerCompletionPanel[1];
 
         overlay[0] = new TowerCompletionPanel(
                 pointsEarned,
                 packsEarned,
-                () -> { // Continue to next level
+                () -> { // Continue
                     getLayeredPane().remove(overlay[0]);
                     getLayeredPane().repaint();
                     towerManager.advanceLevel();
                     startTowerBattle();
                 },
-                () -> { // Exit tower
+                () -> { // Exit
+                    towerManager.finalizeRewards(); // now rewards are actually granted
                     getLayeredPane().remove(overlay[0]);
                     getLayeredPane().repaint();
-                    towerManager.resetProgress();
                     openMainMenu();
+                    towerManager.resetProgress();
                 }
         );
 
@@ -256,7 +259,6 @@ public class Main extends JFrame {
     public void battleResult(String result) {
         switch (result) {
             case "win":
-                towerManager.finalizeRewards();
                 showTowerCompletionScreen(); // Now lets the player decide
                 break;
             case "lose":

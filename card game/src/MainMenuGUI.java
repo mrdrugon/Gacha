@@ -88,7 +88,7 @@ public class MainMenuGUI extends JPanel {
         add(playerNameLabel);
 
         // Currency label (top right)
-        currencyLabel = new JLabel(" Currency: " + BattleTowerManager.getPoints());
+        currencyLabel = new JLabel(" Currency: " + mainFrame.getTowerManager().getTotalPointsEarned());
         currencyLabel.setBounds((int)(1600 * screenWidth / baseWidth), (int)(20 * screenHeight / baseHeight), labelWidth, labelHeight);
         currencyLabel.setForeground(Color.WHITE);
         currencyLabel.setBackground(new Color(0, 0, 0, 150));

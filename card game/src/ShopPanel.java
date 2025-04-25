@@ -19,7 +19,7 @@ public class ShopPanel extends JPanel {
 
     private JLabel pointsLabel;
 
-    public ShopPanel(Main main, Inventory inventory, int playerPoints) {
+    public ShopPanel(Main main, Inventory inventory) {
         this.main = main;
         setLayout(null);
 
@@ -28,7 +28,7 @@ public class ShopPanel extends JPanel {
         int screenHeight = 1080;
 
         // Top UI: Points + Back Button
-        pointsLabel = new JLabel("Points: " + BattleTowerManager.getPoints(), SwingConstants.CENTER);
+        pointsLabel = new JLabel("Points: " + main.getTowerManager().getCurrentPoints(), SwingConstants.CENTER);
         pointsLabel.setForeground(Color.BLACK);
         pointsLabel.setFont(new Font("Arial", Font.BOLD, 28));
         pointsLabel.setBounds(0, 20, screenWidth, 40);
@@ -70,15 +70,15 @@ public class ShopPanel extends JPanel {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     int cost = packPrices[index];
-                    if (BattleTowerManager.getPoints() >= cost) {
-                        BattleTowerManager.Points -= cost;
+                    if (main.getTowerManager().getCurrentPoints() >= cost) {
+                        main.getTowerManager().spendPoints(cost);
                         updatePoints();
 
                         Pack pack = PackFactory.createPack(packTypes.get(index));
                         List<ICard> newCards = pack.openPack();
                         main.getInventory().addCards(newCards);
                         main.log("Bought " + packTypes.get(index) + " pack for " + cost + " points.");
-                        main.openPack();
+                        main.openPack(packTypes.get(index));
                     } else {
                         main.log("Not enough points.");
                     }
@@ -100,6 +100,6 @@ public class ShopPanel extends JPanel {
     }
 
     private void updatePoints() {
-        pointsLabel.setText("Points: " + BattleTowerManager.getTotalPointsEarned());
+        pointsLabel.setText("Points: " + main.getTowerManager().getCurrentPoints());
     }
 }

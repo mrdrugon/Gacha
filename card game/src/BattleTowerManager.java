@@ -4,8 +4,9 @@ import java.util.Random;
 
 public class BattleTowerManager {
     private int currentLevel;
-    public static int totalPointsEarned;
-    public static int Points;
+    private int totalPointsEarned;
+    private int points; // lowercase now, not static
+    private int currentPoints = 0;  // Spendable points
     private List<Pack> earnedPacks;
 
     private final Random random = new Random();
@@ -16,16 +17,26 @@ public class BattleTowerManager {
         earnedPacks = new ArrayList<>();
     }
 
-    public static int getTotalPointsEarned(){
+    public int getTotalPointsEarned() {
         return totalPointsEarned;
     }
 
-    public static int getPoints(){
-        return Points;
+    public int getPoints() {
+        return points;
+    }
+
+    public int getCurrentPoints() {
+        return currentPoints;
     }
 
     public List<Pack> getEarnedPacks(){
         return earnedPacks;
+    }
+
+    public void spendPoints(int amount) {
+        if (currentPoints >= amount) {
+            currentPoints -= amount;
+        }
     }
 
     public void advanceLevel(){
@@ -34,7 +45,7 @@ public class BattleTowerManager {
 
     public void resetProgress(){
         currentLevel = 1;
-        Points = 0;
+        points = 0;
         earnedPacks.clear();
     }
 
@@ -50,8 +61,9 @@ public class BattleTowerManager {
     }
 
     public void finalizeRewards() {
+        points += previewPoints();
         totalPointsEarned += previewPoints();
-        Points += previewPoints();
+        currentPoints += previewPoints();
         earnedPacks.addAll(previewPacks());
     }
 
