@@ -107,17 +107,15 @@ public class BasicCard implements ICard {
 
     @Override
     public void takeDamageWithAbilities(int damage, Battle battle) {
+        if (battle.isGlacialShieldActive(this)) {
+            damage = (int) Math.ceil(damage * 0.5);
+        }
+
         this.health = Math.max(0, this.health - damage);
 
         for (AbilityType type : abilities) {
             CardAbilities.onTakeDamage(this, damage, type, battle);
         }
-
-        if (battle.isGlacialShieldActive(this)) {
-            damage = (int) Math.ceil(damage * 0.5); // Reduce by 50%
-            System.out.println(this.getName() + " is shielded! Damage reduced to " + damage);
-        }
-        this.health = Math.max(0, this.health - damage);
 
         if (this.health <= 0) {
             ICard attacker = (this == battle.selectedPlayerCard)
@@ -128,16 +126,10 @@ public class BasicCard implements ICard {
             }
         }
 
-        // Check for Fire Rebirth AFTER taking damage
+        // Fire Rebirth logic
         if (this.health <= 0 && !hasRebirthed && abilities.contains(AbilityType.FIRE_REBIRTH)) {
             this.health = Math.max(1, originalHealth / 2);
             this.hasRebirthed = true;
-            return; // skip other effects, card is reborn
-        }
-
-        // Apply other abilities
-        for (AbilityType type : abilities) {
-            CardAbilities.onTakeDamage(this, damage, type, battle);
         }
     }
 

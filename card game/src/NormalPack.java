@@ -8,8 +8,7 @@ final class NormalPack implements Pack {
             new BasicCard("Yellow Avenger", 8, 30, "Common", Collections.singletonList(AbilityType.LIGHTNING_CHARGE)),
             new BasicCard("Blue Ice Warden", 5, 40, "Common", Collections.singletonList(AbilityType.FROSTBITE)),
             new BasicCard("Verdant Guardian", 6, 50, "Common", Collections.singletonList(AbilityType.THORN_ARMOR)),
-            new BasicCard("Volcanic Golem", 10, 75, "Common", Collections.singletonList(AbilityType.LAVA_SURGE)),
-            new BasicCard("Frost Titan", 9, 70, "Common", Collections.singletonList(AbilityType.GLACIAL_SHIELD))
+            new BasicCard("Volcanic Golem", 10, 75, "Common", Collections.singletonList(AbilityType.LAVA_SURGE))
     };
 
 
@@ -17,7 +16,8 @@ final class NormalPack implements Pack {
             new BasicCard("Citrine Monk", 7, 40, "Uncommon", Collections.singletonList(AbilityType.RADIANT_BALANCE)),
             new BasicCard("Blazing Lion", 9, 45, "Uncommon", Collections.singletonList(AbilityType.BURNING_CLAWS)),
             new BasicCard("Solar Paladin", 10, 60, "Uncommon", Collections.singletonList(AbilityType.RADIANT_LIGHT)),
-            new BasicCard("Zephyr Falcon", 8, 50, "Uncommon", Collections.singletonList(AbilityType.GALE_FORCE))
+            new BasicCard("Zephyr Falcon", 8, 50, "Uncommon", Collections.singletonList(AbilityType.GALE_FORCE)),
+            new BasicCard("Frost Titan", 9, 70, "Common", Collections.singletonList(AbilityType.GLACIAL_SHIELD))
     };
 
     private static final BasicCard[] RARE_CARDS = {

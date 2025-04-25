@@ -104,15 +104,14 @@ public class CardAbilities {
     }
 
     private static void applyFlameFury(ICard attacker, ICard target) {
-        double healthRatio = (double) attacker.getHealth() / attacker.getOriginalHealth();
-        if (healthRatio < 0.3) {
+        if (attacker.getHealth() / 0.3 < attacker.getHealth()) {
             int damage = attacker.getAttack() * 2;
             target.takeDamageWithAbilities(damage, null); // `null` for Battle if you don't need effects
         }
     }
 
     private static void applyOceansGrasp(ICard target, Battle battle) {
-        battle.freezeCard(target, 1);
+        battle.freezeCard(target, 2);
     }
 
     private static void applyBurningClaws(ICard target, Battle battle) {
@@ -120,7 +119,10 @@ public class CardAbilities {
     }
 
     private static void applyRadiantBalance(ICard card, Battle battle) {
+        if (card.getHealth() <= 0) return; // Don't apply if dead
+
         card.setHealth(card.getHealth() + 5); // Heal self
+
         ICard target = (card == battle.selectedPlayerCard)
                 ? Battle.getCurrentOpponentCard()
                 : battle.selectedPlayerCard;
@@ -153,7 +155,7 @@ public class CardAbilities {
         List<ICard> enemies = isPlayer ? battle.getOpponentDeck() : battle.getPlayerDeck();
         for (ICard enemy : enemies) {
             if (enemy.getHealth() > 0) {
-                enemy.takeDamageWithAbilities(10, battle);
+                enemy.takeDamageWithAbilities(5, battle);
             }
         }
 
@@ -166,7 +168,7 @@ public class CardAbilities {
         if (surgeMap.containsKey(card)) {
             int turns = surgeMap.get(card);
             if (turns > 0) {
-                card.takeDamageWithAbilities(5, battle);
+                card.takeDamageWithAbilities(10, battle);
             }
             surgeMap.put(card, turns + 1); // Track turns since surge
         }
@@ -183,7 +185,7 @@ public class CardAbilities {
     }
 
     private static void applyGlacialShield(ICard card, Battle battle) {
-        battle.setGlacialShield(card, 1);
+        battle.setGlacialShield(card, battle.getGlobalTurnCounter() + 1);
     }
 
     private static void applyRadiantLight(ICard card, Battle battle) {

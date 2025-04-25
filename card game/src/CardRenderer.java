@@ -145,7 +145,7 @@ public class CardRenderer {
             case ASHEN_WINGS:
                 return "When this card is destroyed, it deals 10 damage to all enemy cards.";
             case GLACIAL_SHIELD:
-                return "Reduces incoming damage by 50% for 1 turn when summoned.";
+                return "Reduces incoming damage by 50%.";
             case RADIANT_LIGHT:
                 return "Heals all friendly cards for 10 health every 3 turns.";
             case CYCLONE_FURY:

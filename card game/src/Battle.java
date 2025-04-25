@@ -10,9 +10,11 @@ public class Battle {
     private Map<ICard, Integer> poisonedCards;
     private static ICard currentOpponentCard;
     private Map<ICard, Integer> frozenCards = new HashMap<>();
+    private Map<ICard, Integer> nextFrozenCards = new HashMap<>();
+    private final Map<ICard, Integer> freezeImmunity = new HashMap<>();
     private Map<ICard, Integer> burningCards = new HashMap<>();
     private final Map<ICard, Integer> lavaSurgeCards = new HashMap<>();
-    private Map<ICard, Integer> glacialShieldedCards = new HashMap<>();
+    private Map<ICard, Integer> glacialShieldExpiry = new HashMap<>();
     private int globalTurnCounter = 0;
     private Map<ICard, Integer> galeForceDebuff = new HashMap<>();
 
@@ -116,20 +118,12 @@ public class Battle {
             for (AbilityType type : opponentCard.getAbilities()) {
                 CardAbilities.onDeath(opponentCard, selectedPlayerCard, type, this);
             }
-
-            glacialShieldedCards.entrySet().removeIf(entry -> {
-                int turnsLeft = entry.getValue() - 1;
-                if (turnsLeft <= 0) {
-                    return true;
-                } else {
-                    glacialShieldedCards.put(entry.getKey(), turnsLeft);
-                    return false;
-                }
-            });
         }
 
+        updateFrozenCards();
+        updateGlacialShields();
+
         globalTurnCounter++;
-        decrementFrozenCards();
         decrementBurningCards();
         tickGaleForceDebuff();
 
@@ -165,28 +159,70 @@ public class Battle {
         return globalTurnCounter;
     }
 
+    public void updateGlacialShields() {
+        glacialShieldExpiry.entrySet().removeIf(entry ->
+                entry.getValue() <= globalTurnCounter
+        );
+    }
+
     public void setGlacialShield(ICard card, int turns) {
-        glacialShieldedCards.put(card, turns);
+        glacialShieldExpiry.put(card, globalTurnCounter + turns);
     }
 
     public boolean isGlacialShieldActive(ICard card) {
-        return glacialShieldedCards.containsKey(card);
+        return glacialShieldExpiry.getOrDefault(card, 0) > globalTurnCounter;
     }
 
     public Map<ICard, Integer> getLavaSurgeCards() {
         return lavaSurgeCards;
     }
 
+    public void updateFrozenCards() {
+        for (Map.Entry<ICard, Integer> entry : nextFrozenCards.entrySet()) {
+            ICard card = entry.getKey();
+            if (!isFreezeImmune(card)) {
+                frozenCards.put(card, entry.getValue());
+            }
+        }
+        nextFrozenCards.clear();
+
+        frozenCards.entrySet().removeIf(entry -> {
+            ICard card = entry.getKey();
+            int newDuration = entry.getValue() - 1;
+            if (newDuration <= 0) {
+                applyFreezeImmunity(card, 2); // Give 2 turns of immunity after thawing
+                return true;
+            } else {
+                entry.setValue(newDuration);
+                return false;
+            }
+        });
+
+        // Decrease immunity timers
+        freezeImmunity.entrySet().removeIf(entry -> entry.setValue(entry.getValue() - 1) <= 0);
+    }
+
+    public boolean isFreezeImmune(ICard card) {
+        return freezeImmunity.getOrDefault(card, 0) > 0;
+    }
+
+    public void applyFreezeImmunity(ICard card, int turns) {
+        freezeImmunity.put(card, turns);
+    }
+
     public void freezeCard(ICard card, int turns) {
-        frozenCards.put(card, turns);
+        // Only apply if no freeze is active or next one is longer
+        int current = frozenCards.getOrDefault(card, 0);
+        int next = nextFrozenCards.getOrDefault(card, 0);
+        if (current == 0 && next == 0) {
+            nextFrozenCards.put(card, turns);
+        } else if (turns > Math.max(current, next)) {
+            nextFrozenCards.put(card, turns);
+        }
     }
 
     public boolean isFrozen(ICard card) {
         return frozenCards.getOrDefault(card, 0) > 0;
-    }
-
-    private void decrementFrozenCards() {
-        frozenCards.replaceAll((card, turns) -> Math.max(0, turns - 1));
     }
 
     public void applyBurn(ICard card, int turns) {
