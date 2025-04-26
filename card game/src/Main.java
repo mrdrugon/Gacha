@@ -202,6 +202,30 @@ public class Main extends JFrame {
         overlay[0].requestFocusInWindow();
     }
 
+    public void openEarnedTowerPacks() {
+        if (towerManager.getEarnedPacks().isEmpty()) {
+            openMainMenu();
+            towerManager.resetProgress();
+            return;
+        }
+
+        Pack pack = towerManager.getEarnedPacks().remove(0);
+        List<ICard> newCards = pack.openPack();
+        inventory.addCards(newCards);
+
+        final PackOpeningPanel[] overlay = new PackOpeningPanel[1];
+
+        overlay[0] = new PackOpeningPanel(newCards, () -> {
+            getLayeredPane().remove(overlay[0]);
+            getLayeredPane().repaint();
+            openEarnedTowerPacks(); // <--- recursively open the next pack
+        });
+
+        overlay[0].setBounds(0, 0, getWidth(), getHeight());
+        getLayeredPane().add(overlay[0], JLayeredPane.POPUP_LAYER);
+        overlay[0].requestFocusInWindow();
+    }
+
     public void openInventory() {
         cardPanel.remove(inventoryGUI.getPanel()); // Remove old panel
         inventoryGUI = new InventoryGUI(inventory, this); // Recreate GUI with latest inventory
@@ -243,11 +267,16 @@ public class Main extends JFrame {
                     startTowerBattle();
                 },
                 () -> { // Exit
-                    towerManager.finalizeRewards(); // now rewards are actually granted
+                    towerManager.finalizeRewards(); // rewards are now actually granted
                     getLayeredPane().remove(overlay[0]);
                     getLayeredPane().repaint();
-                    openMainMenu();
-                    towerManager.resetProgress();
+
+                    if (!towerManager.getEarnedPacks().isEmpty()) {
+                        openEarnedTowerPacks();
+                    } else {
+                        openMainMenu();
+                        towerManager.resetProgress();
+                    }
                 }
         );
 

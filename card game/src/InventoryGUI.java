@@ -80,7 +80,7 @@ public class InventoryGUI {
         rootPanel.add(verticalBox, BorderLayout.NORTH);
 
         // ─── INVENTORY PANEL ─────────────────────────────
-        inventoryPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        inventoryPanel = new JPanel(new GridBagLayout());
         inventoryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JScrollPane scrollPane = new JScrollPane(inventoryPanel);
         rootPanel.add(scrollPane, BorderLayout.CENTER);
@@ -135,17 +135,36 @@ public class InventoryGUI {
         Map<String, Integer> groupedCounts = new HashMap<>();
         Map<String, ICard> cardReference = new HashMap<>();
 
+        // 🔥 Populate the groupedCounts and cardReference maps
         for (ICard card : inventory.getCards()) {
             String name = card.getName();
             groupedCounts.put(name, groupedCounts.getOrDefault(name, 0) + 1);
-            cardReference.put(name, card);
+            cardReference.putIfAbsent(name, card);
         }
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10); // Margin between cards
+        gbc.anchor = GridBagConstraints.CENTER;
+
+        int x = 0;
+        int y = 0;
+
         for (Map.Entry<String, Integer> entry : groupedCounts.entrySet()) {
             String cardName = entry.getKey();
             int count = entry.getValue();
             ICard card = cardReference.get(cardName);
+
             JButton cardPanel = new CardPanel(card, count);
-            inventoryPanel.add(cardPanel);
+
+            gbc.gridx = x;
+            gbc.gridy = y;
+            inventoryPanel.add(cardPanel, gbc);
+
+            x++;
+            if (x >= 5) { // 5 cards per row
+                x = 0;
+                y++;
+            }
         }
         inventoryPanel.revalidate();
         inventoryPanel.repaint();
@@ -187,7 +206,6 @@ public class InventoryGUI {
         ICard upgradedCard = new BasicCard(card.getName() + " +1", card.getAttack() + 1, card.getHealth() + 1, rarity, card);
         inventory.addCards(Arrays.asList(upgradedCard));
         updateInventoryDisplay();
-
          */
     }
 

@@ -55,9 +55,24 @@ public class BattleTowerManager {
 
     public List<Pack> previewPacks() {
         List<Pack> preview = new ArrayList<>();
-        if (currentLevel % 3 == 0) preview.add(new NormalPack());
-        if (currentLevel % 5 == 0) preview.add(new GemStonesPack());
+
+        // 25% chance to earn a pack this level
+        if (random.nextFloat() < 0.25f) {
+            preview.add(getRandomPack());
+        }
+
+        // 10% chance to earn a second bonus pack
+        if (random.nextFloat() < 0.10f) {
+            preview.add(getRandomPack());
+        }
+
         return preview;
+    }
+
+    private Pack getRandomPack() {
+        PackType[] types = PackType.values();
+        PackType randomType = types[random.nextInt(types.length)];
+        return PackFactory.createPack(randomType);
     }
 
     public void finalizeRewards() {

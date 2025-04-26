@@ -17,8 +17,6 @@ public class Battle {
     private Map<ICard, Integer> glacialShieldExpiry = new HashMap<>();
     private int globalTurnCounter = 0;
     private Map<ICard, Integer> galeForceDebuff = new HashMap<>();
-
-
     private int opponentIndex;
     public ICard selectedPlayerCard;
 

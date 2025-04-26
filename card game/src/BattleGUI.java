@@ -5,7 +5,6 @@ import java.util.*;
 import java.util.List;
 
 public class BattleGUI extends JPanel{
-    private JTextArea battleLog;
     private JLayeredPane playerDeckPanel;
     private JLayeredPane opponentDeckPanel;
     private Map<Integer, JButton> cardButtonsMap;
@@ -33,12 +32,6 @@ public class BattleGUI extends JPanel{
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(800, 500));
 
-        // --- Battle Log (center)
-        battleLog = new JTextArea();
-        battleLog.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(battleLog);
-        add(scrollPane, BorderLayout.CENTER);
-
         opponentDeckPanel = new JLayeredPane();
         opponentDeckPanel.setPreferredSize(new Dimension(400, 220));
         add(opponentDeckPanel, BorderLayout.NORTH);
@@ -47,8 +40,6 @@ public class BattleGUI extends JPanel{
         playerDeckPanel = new JLayeredPane();
         playerDeckPanel.setPreferredSize(new Dimension(400, 220));
         add(playerDeckPanel, BorderLayout.SOUTH);
-
-        log("Battle started! Choose a card to play.");
 
         SwingUtilities.invokeLater(this::updatePlayerDeckUI);
         SwingUtilities.invokeLater(this::updateOpponentDeckUI);
@@ -127,12 +118,10 @@ public class BattleGUI extends JPanel{
 
     private void playRound(ICard selectedCard, CardPanel selectedCardPanel) {
         if (selectedCard == null) {
-            log("You must select a card first!");
             return;
         }
 
         if (!battle.playerSelectedCard(selectedCard)) {
-            log("Failed to select the card!");
             return;
         }
 
@@ -140,7 +129,6 @@ public class BattleGUI extends JPanel{
 
         ICard opponentCard = battle.getNextOpponentCard();
         if (opponentCard == null) {
-            log("No more opponent cards left!");
             return;
         }
 
@@ -149,7 +137,6 @@ public class BattleGUI extends JPanel{
         CardPanel opponentCardPanel = new CardPanel(opponentCard);
         BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
 
-        remove(battleLog.getParent()); // remove the JScrollPane (log area)
         add(battlePanel, BorderLayout.CENTER);
 
         revalidate();
@@ -165,7 +152,6 @@ public class BattleGUI extends JPanel{
                 isTurnActive = true; // Re-enable clicks after battle
 
                 if (battleOver) {
-                    log("Battle Over!");
                     disableAllButtons();
                     resetPlayerCards();
                 }
@@ -287,15 +273,12 @@ public class BattleGUI extends JPanel{
         boolean opponentLost = battle.isOpponentDefeated();
 
         if (playerLost && opponentLost) {
-            log("It's a tie!");
             disableAllButtons();
             main.battleResult("tie"); // <-- Add this
         } else if (playerLost) {
-            log("You lost the battle.");
             disableAllButtons();
             main.battleResult("lose"); // <-- And this
         } else if (opponentLost) {
-            log("You won the battle! Congratulations!");
             disableAllButtons();
             main.battleResult("win");
         }
@@ -313,11 +296,6 @@ public class BattleGUI extends JPanel{
         for (ICard card : playerDeck) {
             card.resetHealth();
         }
-    }
-
-    private void log(String message) {
-        battleLog.append(message + "\n");
-        battleLog.setCaretPosition(battleLog.getDocument().getLength());
     }
 
     // Custom JPanel to render a card.
