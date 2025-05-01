@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CardAbilities {
     public static void onAttack(ICard attacker, ICard target, AbilityType type, Battle battle) {
@@ -23,11 +24,23 @@ public class CardAbilities {
             case GALE_FORCE:
                 applyGaleForce(target, battle);
                 break;
-            // Add more attack-based abilities here
+            case FIRESTORM:
+                applyLavaSurge(attacker, battle);
+                break;
+            case SHADOW_DRAIN:
+                applyShadowDrain(attacker, target);
+                break;
+            case VOLCANIC_CORE:
+                applyVolcanicCore(attacker, target, battle);
+                break;
+           /* case DARK_VISION:
+                applyDarkVision(attacker, battle);
+                break;
+            */
         }
     }
 
-    public static void onTakeDamage(ICard card, int damage, AbilityType type, Battle battle) {
+    public static void onTakeDamage(ICard card, ICard attacker, int damage, AbilityType type, Battle battle) {
         switch (type) {
             case LIGHTNING_CHARGE:
                 applyLightningCharge(card);
@@ -35,6 +48,14 @@ public class CardAbilities {
             case THORN_ARMOR:
                 applyThornArmor(card, damage, battle);
                 break;
+            case WATER_SHIELD:
+                applyWaterShieldDamageReduction(card, damage, battle);
+                break;
+            case GEM_SHIELD:
+                applyGemShield(card, damage);
+                break;
+            case SHIMMERING_RETALIATION:
+                applyShimmeringRetaliation(card, attacker);
         }
     }
 
@@ -54,6 +75,9 @@ public class CardAbilities {
                 break;
             case CYCLONE_FURY:
                 applyCycloneFury(card, battle);
+                break;
+            case WATER_SHIELD:
+                applyWaterShieldHealing(card);
                 break;
         }
     }
@@ -78,6 +102,66 @@ public class CardAbilities {
                 applyEternalFlame(card);
                 break;
             // Add more death-triggered abilities here
+        }
+    }
+
+    /*
+    public static void applyDarkVision(ICard card, Battle battle) {
+        List<ICard> opponentHand = battle.getOpponentHand();
+        List<ICard> hiddenCards = opponentHand.stream()
+                .filter(c -> !c.isRevealed() && c.getHealth() > 0)
+                .collect(Collectors.toList());
+
+        if (!hiddenCards.isEmpty()) {
+            ICard selected = hiddenCards.get(battle.getRandom().nextInt(hiddenCards.size()));
+            selected.setRevealed(true);
+            selected.setAttack(Math.max(0, selected.getAttack() - 3));
+        }
+    }
+     */
+
+    public static void applyVolcanicCore(ICard card, ICard target, Battle battle) {
+        if (card != null && target != null) {
+            card.takeDamageWithAbilities(10, battle);
+            target.takeDamageWithAbilities(10, battle);
+        }
+    }
+
+    private static void applyShimmeringRetaliation(ICard card, ICard attacker) {
+        if (attacker != null) {
+            attacker.takeDamage(5);
+        }
+        card.setHealth(card.getHealth() + 2); // Boost current health
+    }
+
+    private static void applyShadowDrain(ICard attacker, ICard target) {
+        if (attacker instanceof BasicCard) {
+            BasicCard basicAttacker = (BasicCard) attacker;
+            if (!basicAttacker.hasUsedShadowDrain()) {
+                int stolenAmount = Math.min(5, target.getAttack());
+                target.setAttack(target.getAttack() - stolenAmount);
+                basicAttacker.setAttack(basicAttacker.getAttack() + stolenAmount);
+                basicAttacker.setHasUsedShadowDrain(true);
+            }
+        }
+    }
+
+    private static void applyGemShield(ICard card, int incomingDamage){
+        int reducedDamage = (int) Math.ceil(incomingDamage * 0.8); // 20% damage reduction
+        int difference = incomingDamage - reducedDamage;
+        card.setHealth(card.getHealth() + difference);
+    }
+
+    private static void applyWaterShieldDamageReduction(ICard card, int damage, Battle battle) {
+        int reducedDamage = Math.max(0, damage - 5);
+        if (reducedDamage > 0) {
+            card.takeDamageWithAbilities(reducedDamage, battle);
+        }
+    }
+
+    private static void applyWaterShieldHealing(ICard card) {
+        if (card.getHealth() > 0) {
+            card.setHealth(card.getHealth() + 5);
         }
     }
 
@@ -155,7 +239,7 @@ public class CardAbilities {
         List<ICard> enemies = isPlayer ? battle.getOpponentDeck() : battle.getPlayerDeck();
         for (ICard enemy : enemies) {
             if (enemy.getHealth() > 0) {
-                enemy.takeDamageWithAbilities(5, battle);
+                enemy.takeDamageWithAbilities(10, battle);
             }
         }
 

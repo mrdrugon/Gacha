@@ -154,6 +154,20 @@ public class CardRenderer {
                 return "Reduces the enemy’s attack by 4 for 2 turns after attacking.";
             case ETERNAL_FLAME:
                 return "When destroyed, it revives with full health and gains +5 attack.";
+            case FIRESTORM:
+                return "Deals 10 damage to all enemy cards.";
+            case WATER_SHIELD:
+                return "Reduces incoming damage by 5 and heals for 5 every turn.";
+            case GEM_SHIELD:
+                return "Reduces incoming damage by 20%.";
+            case SHADOW_DRAIN:
+                return "Steals 5 attack from the opponent card it hits (once per match).";
+            case SHIMMERING_RETALIATION:
+                return "When hit, deals 5 damage back and gains +2 defense.";
+            case VOLCANIC_CORE:
+                return "Deals 10 damage to both itself and the enemy on attack.";
+            case DARK_VISION:
+                return "Reveals a random card in the opponent's hand and weakens it by 3 attack.";
             // Add others
             default:
                 return "";

@@ -11,6 +11,7 @@ public class BasicCard implements ICard {
     private String rarity;
     private List<AbilityType> abilities;
     private boolean hasRevived = false;
+    private boolean hasUsedShadowDrain = false;
 
     public BasicCard(String name, int attack, int health, String rarity, List<AbilityType> abilityType) {
         this.name = name;
@@ -113,23 +114,25 @@ public class BasicCard implements ICard {
 
         this.health = Math.max(0, this.health - damage);
 
+        ICard attacker = (this == battle.selectedPlayerCard)
+                ? Battle.getCurrentOpponentCard()
+                : battle.selectedPlayerCard;
+
         for (AbilityType type : abilities) {
-            CardAbilities.onTakeDamage(this, damage, type, battle);
+            CardAbilities.onTakeDamage(this, attacker, damage, type, battle);
         }
 
         if (this.health <= 0) {
-            ICard attacker = (this == battle.selectedPlayerCard)
-                    ? Battle.getCurrentOpponentCard()
-                    : battle.selectedPlayerCard;
+            // Fire Rebirth logic first
+            if (!hasRebirthed && abilities.contains(AbilityType.FIRE_REBIRTH)) {
+                this.health = Math.max(1, originalHealth / 2);
+                this.hasRebirthed = true;
+                return; // Rebirth saved the card, skip death logic
+            }
+
             for (AbilityType type : abilities) {
                 CardAbilities.onDeath(this, attacker, type, battle);
             }
-        }
-
-        // Fire Rebirth logic
-        if (this.health <= 0 && !hasRebirthed && abilities.contains(AbilityType.FIRE_REBIRTH)) {
-            this.health = Math.max(1, originalHealth / 2);
-            this.hasRebirthed = true;
         }
     }
 
@@ -151,6 +154,14 @@ public class BasicCard implements ICard {
 
     public void setHasRevived(boolean revived) {
         this.hasRevived = revived;
+    }
+
+    public boolean hasUsedShadowDrain() {
+        return hasUsedShadowDrain;
+    }
+
+    public void setHasUsedShadowDrain(boolean used) {
+        this.hasUsedShadowDrain = used;
     }
 
     @Override

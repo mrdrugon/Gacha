@@ -8,15 +8,15 @@ final class GemStonesPack implements Pack {
     private static final int PACK_SIZE = 3;
 
     private static final BasicCard[] COMMON_CARDS = {
-            new BasicCard("Emerald Sorceress", 8, 30, "Common", null),
-            new BasicCard("Amethyst Phantom", 8, 30, "Common", null),
-            new BasicCard("Obsidian Wraith", 8, 30, "Common", null)
+            new BasicCard("Emerald Sorceress", 8, 30, "Common", Collections.singletonList(AbilityType.GEM_SHIELD)),
+            new BasicCard("Amethyst Phantom", 8, 30, "Common", Collections.singletonList(AbilityType.SHADOW_DRAIN)),
+            new BasicCard("Obsidian Wraith", 8, 30, "Common", Collections.singletonList(AbilityType.VOLCANIC_CORE))
     };
 
 
     private static final BasicCard[] UNCOMMON_CARDS = {
-            new BasicCard("Sapphire Mage", 8, 30, "Uncommon", null),
-            new BasicCard("Diamond Titan", 8, 30, "Uncommon", null),
+            new BasicCard("Sapphire Mage", 8, 30, "Uncommon", Collections.singletonList(AbilityType.WATER_SHIELD)),
+            new BasicCard("Diamond Titan", 8, 30, "Uncommon", Collections.singletonList(AbilityType.SHIMMERING_RETALIATION)),
             new BasicCard("Onyx Oracle", 8, 30, "Uncommon", null)
     };
 
@@ -27,7 +27,7 @@ final class GemStonesPack implements Pack {
     };
 
     private static final BasicCard[] LEGENDARY_CARDS = {
-            new BasicCard("Ruby Dragon", 8, 30, "Legendary", null)
+            new BasicCard("Ruby Dragon", 8, 30, "Legendary", Collections.singletonList(AbilityType.FIRE_REBIRTH))
     };
 
     private static final int COMMON_CHANCE = 60;
