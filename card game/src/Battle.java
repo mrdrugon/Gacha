@@ -1,6 +1,4 @@
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Battle {
     private List<ICard> playerDeck;
@@ -19,6 +17,7 @@ public class Battle {
     private Map<ICard, Integer> galeForceDebuff = new HashMap<>();
     private int opponentIndex;
     public ICard selectedPlayerCard;
+    private final Set<ICard> revealedOpponentCards = new HashSet<>();
 
     public Battle(List<ICard> playerDeck, List<ICard> opponentDeck) {
         this.playerDeck = playerDeck;
@@ -57,14 +56,11 @@ public class Battle {
 
     // Removed the unused parameter; the method now uses the field selectedPlayerCard.
     public boolean playNextRound() {
-        // Skip over any defeated opponent cards.
-        while (opponentIndex < opponentDeck.size() && opponentDeck.get(opponentIndex).getHealth() <= 0) {
-            opponentIndex++;
-        }
 
-        if (opponentIndex >= opponentDeck.size()) return true;
+        if (isOpponentDefeated()) return true;
 
         ICard opponentCard = getNextOpponentCard();
+        revealedOpponentCards.add(opponentCard);
         if (opponentCard == null) return true;
 
         // Set current opponent for reference
@@ -112,7 +108,6 @@ public class Battle {
 
         // If the opponent card is defeated, move to the next one.
         if (opponentCard.getHealth() <= 0) {
-            opponentIndex++;
             for (AbilityType type : opponentCard.getAbilities()) {
                 CardAbilities.onDeath(opponentCard, selectedPlayerCard, type, this);
             }
@@ -285,13 +280,20 @@ public class Battle {
     }
 
     public ICard getNextOpponentCard() {
-        while (opponentIndex < opponentDeck.size()) {
-            ICard nextCard = opponentDeck.get(opponentIndex);
-            if (nextCard.getHealth() > 0) {
-                return nextCard;
+        List<ICard> aliveOpponents = new ArrayList<>();
+        for (ICard card : opponentDeck) {
+            if (card.getHealth() > 0) {
+                aliveOpponents.add(card);
             }
-            opponentIndex++;
         }
-        return null;
+
+        if (aliveOpponents.isEmpty()) return null;
+
+        Random rand = new Random();
+        return aliveOpponents.get(rand.nextInt(aliveOpponents.size()));
+    }
+
+    public Set<ICard> getRevealedOpponentCards() {
+        return revealedOpponentCards;
     }
 }

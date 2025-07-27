@@ -5,7 +5,7 @@ import java.util.Random;
 public class BattleTowerManager {
     private int currentLevel;
     private int totalPointsEarned;
-    private int points; // lowercase now, not static
+    private int points;
     private int currentPoints = 0;  // Spendable points
     private List<Pack> earnedPacks;
 

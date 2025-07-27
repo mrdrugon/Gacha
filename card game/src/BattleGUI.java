@@ -87,12 +87,6 @@ public class BattleGUI extends JPanel{
 
     private void updateOpponentDeckUI() {
         opponentDeckPanel.removeAll();
-        cardButtonsMap.clear();
-        deadCardsIds.clear();
-
-        int xOffset = 200;
-        int cardWidth = 145;
-        int cardHeight = 220;
 
         List<ICard> aliveCards = new ArrayList<>();
         for (ICard card : battle.getOpponentDeck()) {
@@ -101,15 +95,27 @@ public class BattleGUI extends JPanel{
             }
         }
 
+        Set<ICard> revealed = battle.getRevealedOpponentCards();
+
+        int xOffset = 200;
+        int cardWidth = 145;
+        int cardHeight = 220;
+
         int totalWidth = (aliveCards.size() - 1) * xOffset + cardWidth;
         int startX = (opponentDeckPanel.getWidth() - totalWidth) / 2;
 
         for (int i = 0; i < aliveCards.size(); i++) {
             ICard card = aliveCards.get(i);
-            CardPanel cardPanel = new CardPanel(card);
+            JPanel cardPanel; // ✅ Use JPanel instead of CardPanel
+
+            if (revealed.contains(card)) {
+                cardPanel = new CardPanel(card); // Show actual card
+            } else {
+                cardPanel = new CardBackPanel(); // Show card back
+            }
+
             cardPanel.setBounds(startX + i * xOffset, 0, cardWidth, cardHeight);
-            int layer = i;
-            opponentDeckPanel.add(cardPanel, Integer.valueOf(layer));
+            opponentDeckPanel.add(cardPanel, Integer.valueOf(i));
         }
 
         opponentDeckPanel.revalidate();
@@ -354,4 +360,30 @@ public class BattleGUI extends JPanel{
             super.paintComponent(g);
         }
     }
+
+    public class CardBackPanel extends JPanel {
+        public CardBackPanel() {
+            setPreferredSize(new Dimension(145, 220));
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+
+            // Draw a placeholder or card back
+            g2d.setColor(Color.DARK_GRAY);
+            g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+
+            g2d.setColor(Color.WHITE);
+            g2d.setFont(new Font("Arial", Font.BOLD, 24));
+            FontMetrics fm = g2d.getFontMetrics();
+            String hiddenText = "?";
+            int x = (getWidth() - fm.stringWidth(hiddenText)) / 2;
+            int y = (getHeight() + fm.getAscent()) / 2 - 10;
+            g2d.drawString(hiddenText, x, y);
+        }
+    }
+
 }
