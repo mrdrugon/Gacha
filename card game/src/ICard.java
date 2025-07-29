@@ -14,4 +14,19 @@ public interface ICard {
     String getRarity();
     List<AbilityType> getAbilities();
     void addAbility(AbilityType ability);
+    boolean isBurning();
+    void applyBurn(int turns);
+    void tickBurn();
+    void applyTemporaryAttackReduction(int amount, int turns);
+    void tickAttackReduction();
+    boolean isStunned();
+    void setStunned(boolean stunned);
+    void applyHex(int turns);
+    boolean isHexed();
+    void tickHex();
+    int getEffectiveAttack();
+    void resetStatus();
+    void attack(ICard target, Battle battle);
+    boolean hasAttackedThisTurn();
+    boolean isRevealed();
 }

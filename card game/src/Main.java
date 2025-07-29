@@ -1,11 +1,8 @@
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Main extends JFrame {
     private CardLayout cardLayout;
@@ -15,6 +12,8 @@ public class Main extends JFrame {
     private MainMenuGUI mainMenu;
     private InventoryGUI inventoryGUI;
     private BattleTowerManager towerManager = new BattleTowerManager();
+    private NetworkManager networkManager;
+    private BattleGUI multiplayerBattleGUI;
 
 
     public Main() {
@@ -40,10 +39,6 @@ public class Main extends JFrame {
         cardPanel.add(inventoryGUI.getPanel(), "Inventory");
 
         cardLayout.show(cardPanel, "MainMenu");
-
-        logArea = new JTextArea(0, 0);
-        logArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(logArea);
 
         add(cardPanel);
         cardLayout.show(cardPanel, "auth"); // Show login/signup first
@@ -144,10 +139,11 @@ public class Main extends JFrame {
                 JOptionPane.showMessageDialog(this, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                 // Create MainMenuGUI with the required arguments
+                cardPanel.remove(mainMenu);
                 mainMenu = new MainMenuGUI(username, this);
-                cardPanel.add(mainMenu, "mainMenu");
+                cardPanel.add(mainMenu, "MainMenu");
 
-                cardLayout.show(cardPanel, "mainMenu");// Switch to main menu
+                cardLayout.show(cardPanel, "MainMenu");// Switch to main menu
                 openPack(PackType.NORMAL);
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid login", "Error", JOptionPane.ERROR_MESSAGE);
@@ -204,8 +200,8 @@ public class Main extends JFrame {
 
     public void openEarnedTowerPacks() {
         if (towerManager.getEarnedPacks().isEmpty()) {
-            openMainMenu();
             towerManager.resetProgress();
+            openMainMenu();
             return;
         }
 
@@ -241,11 +237,29 @@ public class Main extends JFrame {
         cardPanel.repaint();
     }
 
+    public void openCards(List<ICard> cards) {
+        PackOpeningPanel panel = new PackOpeningPanel(cards, () -> {});
+        setOverlay(panel);
+    }
+
+    public void setOverlay(JPanel overlayPanel){
+        overlayPanel.setBounds(0, 0, getWidth(), getHeight());
+        getLayeredPane().add(overlayPanel, JLayeredPane.POPUP_LAYER);
+        overlayPanel.requestFocusInWindow();
+    }
+
     public void openMainMenu() {
         cardLayout.show(cardPanel, "MainMenu");
     }
 
     public void openBattleModeSelection() {
+        for (Component comp : cardPanel.getComponents()){
+            if (comp instanceof BattleModePanel){
+                cardPanel.remove(comp);
+                break;
+            }
+        }
+
         BattleModePanel battlePanel = new BattleModePanel(this);
         cardPanel.add(battlePanel, "Battle");
         cardLayout.show(cardPanel, "Battle");
@@ -298,6 +312,74 @@ public class Main extends JFrame {
     }
     public Inventory getInventory() {
         return inventory;
+    }
+
+    public enum GameMode {
+        SINGLEPLAYER,
+        MULTIPLAYER_HOST,
+        MULTIPLAYER_CLIENT
+    }
+
+    private GameMode currentGameMode = GameMode.SINGLEPLAYER;
+
+    public void setGameMode(GameMode mode) {
+        this.currentGameMode = mode;
+    }
+
+    public GameMode getGameMode() {
+        return currentGameMode;
+    }
+
+    public interface NetworkManager {
+        void send(String message);
+        void onReceive(Consumer<String> handler);
+        void close();
+    }
+
+    public void setNetworkManager(NetworkManager manager){
+        this.networkManager = manager;
+    }
+
+    public NetworkManager getNetworkManager(){
+        return networkManager;
+    }
+
+    public void setMultiplayerBattleGUI(BattleGUI gui){
+        this.multiplayerBattleGUI = gui;
+    }
+
+    public void openMultiplayerBattle(List<ICard> playerDeck, List<ICard> opponentDeck) {
+        BattleGUI battleGUI = new BattleGUI(playerDeck, opponentDeck, this, null, mainMenu);
+        cardPanel.add(battleGUI, "MultiplayerBattle");
+        cardLayout.show(cardPanel, "MultiplayerBattle");
+        revalidate();
+        repaint();
+    }
+
+    public void startMultiplayerBattle() {
+        // Get the player's selected deck from inventory
+        List<ICard> playerDeck = inventory.getDeck().getDeck();
+
+        // For now, create an empty opponent deck or generate a dummy one
+        List<ICard> opponentDeck = new ArrayList<>(); // You will sync this over the network later
+
+        // Launch the multiplayer battle screen
+        openMultiplayerBattle(playerDeck, opponentDeck);
+
+        // Handle incoming network messages
+        networkManager.onReceive(message -> {
+            if (message.startsWith("PLAY_CARD:")) {
+                int cardId = Integer.parseInt(message.split(":")[1]);
+                SwingUtilities.invokeLater(() -> handleOpponentCardPlayed(cardId));
+            }
+            // (optional) Add opponent deck sync logic later
+        });
+    }
+
+    public void handleOpponentCardPlayed(int cardId){
+        if (multiplayerBattleGUI != null){
+            multiplayerBattleGUI.onOpponentCardPlayed(cardId);
+        }
     }
 
     public void log(String message) {

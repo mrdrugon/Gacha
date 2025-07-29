@@ -14,6 +14,10 @@ public class BattleGUI extends JPanel{
     private Set<Integer> deadCardsIds;
     private Map<Integer, Integer> originalHealthMap;
     private boolean isTurnActive = true;
+    private Main.NetworkManager networkManager;
+    private ICard opponentSelectedCard;
+    private ICard localSelectedCard;
+    private boolean isMultiplayer;
 
     public BattleGUI(List<ICard> playerDeck, List<ICard> enemyDeck, Main main, BattleTowerManager towerManager, MainMenuGUI mainMenuGUI) {
         this.main = main;
@@ -22,6 +26,20 @@ public class BattleGUI extends JPanel{
         this.cardButtonsMap = new HashMap<>();
         this.deadCardsIds = new HashSet<>();
         this.originalHealthMap = new HashMap<>();
+        this.isMultiplayer = main.getGameMode() != Main.GameMode.SINGLEPLAYER;
+        this.networkManager = main.getNetworkManager();
+        main.setMultiplayerBattleGUI(this);
+
+        if (isMultiplayer && networkManager != null) {
+            networkManager.onReceive(message -> {
+                if (message.startsWith("PLAY_CARD:")) {
+                    int cardId = Integer.parseInt(message.split(":")[1]);
+                    ICard card = findCardInOpponentDeckById(cardId);
+                    opponentSelectedCard = card;
+                    SwingUtilities.invokeLater(this::tryStartMultiplayerBattle);
+                }
+            });
+        }
 
         for (ICard card : playerDeck) {
             originalHealthMap.put(card.getId(), card.getHealth());
@@ -123,15 +141,20 @@ public class BattleGUI extends JPanel{
     }
 
     private void playRound(ICard selectedCard, CardPanel selectedCardPanel) {
-        if (selectedCard == null) {
-            return;
-        }
+        if (selectedCard == null || !isTurnActive) return;
 
-        if (!battle.playerSelectedCard(selectedCard)) {
-            return;
-        }
+        if (!battle.playerSelectedCard(selectedCard)) return;
 
-        isTurnActive = false; // Disable clicks
+        isTurnActive = false;
+        localSelectedCard = selectedCard;
+
+        if (isMultiplayer && networkManager != null) {
+            networkManager.send("PLAY_CARD:" + selectedCard.getId());
+            tryStartMultiplayerBattle();
+        } else {
+            opponentSelectedCard = battle.getNextOpponentCard();
+            proceedWithBattleRound();
+        }
 
         ICard opponentCard = battle.getNextOpponentCard();
         if (opponentCard == null) {
@@ -339,6 +362,52 @@ public class BattleGUI extends JPanel{
                 g2d.drawString(card.getHealth() + "/" + card.getOriginalHealth(), 5, barY + 8);
             }
         }
+    }
+
+    private ICard findCardInOpponentDeckById(int id){
+        for (ICard card : battle.getOpponentDeck()){
+            if (card.getId() == id) return card;
+        }
+        return null;
+    }
+
+    private void tryStartMultiplayerBattle(){
+        if (localSelectedCard != null && opponentSelectedCard != null){
+            proceedWithBattleRound();
+        }
+    }
+
+    private void proceedWithBattleRound(){
+        ICard playerCard = localSelectedCard;
+        ICard opponentCard = opponentSelectedCard;
+
+        localSelectedCard = null;
+        opponentSelectedCard = null;
+
+        BattlePanel battlePanel = new BattlePanel();
+        CardPanel playerCardPanel = new CardPanel(playerCard);
+        CardPanel opponentCardPanel = new CardPanel(opponentCard);
+        BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
+
+        add(battlePanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+
+        SwingUtilities.invokeLater(() ->{
+            animateBattle(playerCardPanel, opponentCardPanel, () ->{
+                battle.playNextRound();
+                updatePlayerDeckUI();
+                updateOpponentDeckUI();
+                checkForBattleEnd();
+                isTurnActive = true;
+            });
+        });
+    }
+
+    public void onOpponentCardPlayed(int cardId){
+        ICard opponentCard = findCardInOpponentDeckById(cardId);
+        this.opponentSelectedCard = opponentCard;
+        tryStartMultiplayerBattle();
     }
 
     // Panel used during a battle round to display both cards.

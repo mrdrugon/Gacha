@@ -1,6 +1,7 @@
 import java.util.*;
 
 public class Battle {
+    public Random random;
     private List<ICard> playerDeck;
     private List<ICard> opponentDeck;
     private Map<Integer, ICard> playerCardsMap;
@@ -18,6 +19,7 @@ public class Battle {
     private int opponentIndex;
     public ICard selectedPlayerCard;
     private final Set<ICard> revealedOpponentCards = new HashSet<>();
+    private boolean isSecondAttack = false;
 
     public Battle(List<ICard> playerDeck, List<ICard> opponentDeck) {
         this.playerDeck = playerDeck;
@@ -56,6 +58,11 @@ public class Battle {
 
     // Removed the unused parameter; the method now uses the field selectedPlayerCard.
     public boolean playNextRound() {
+
+        if (selectedPlayerCard.isStunned()) {
+            selectedPlayerCard.setStunned(false);
+            return false; // ← You need to return a boolean since playNextRound() returns boolean
+        }
 
         if (isOpponentDefeated()) return true;
 
@@ -102,14 +109,13 @@ public class Battle {
 
         if (selectedPlayerCard.getHealth() <= 0) {
             for (AbilityType type : selectedPlayerCard.getAbilities()) {
-                CardAbilities.onDeath(selectedPlayerCard, opponentCard, type, this);
+                CardAbilities.onDeath(selectedPlayerCard, opponentCard, selectedPlayerCard, opponentCard, type, this);
             }
         }
 
-        // If the opponent card is defeated, move to the next one.
         if (opponentCard.getHealth() <= 0) {
             for (AbilityType type : opponentCard.getAbilities()) {
-                CardAbilities.onDeath(opponentCard, selectedPlayerCard, type, this);
+                CardAbilities.onDeath(opponentCard, selectedPlayerCard, opponentCard, selectedPlayerCard, type, this);
             }
         }
 
@@ -142,6 +148,10 @@ public class Battle {
                 return false;
             }
         });
+    }
+
+    public ICard getSelectedPlayerCard(){
+        return selectedPlayerCard;
     }
 
     public List<ICard> getOpponentDeckFor(ICard card) {
@@ -201,6 +211,14 @@ public class Battle {
 
     public void applyFreezeImmunity(ICard card, int turns) {
         freezeImmunity.put(card, turns);
+    }
+
+    public boolean isSecondAttack() {
+        return isSecondAttack;
+    }
+
+    public void setSecondAttack(boolean secondAttack) {
+        this.isSecondAttack = secondAttack;
     }
 
     public void freezeCard(ICard card, int turns) {

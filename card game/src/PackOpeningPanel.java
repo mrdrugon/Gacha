@@ -167,6 +167,13 @@ public class PackOpeningPanel extends JPanel {
         repaint();
     }
 
+    public void openCards(List<ICard> cards, JLayeredPane layeredPane) {
+        PackOpeningPanel overlay = new PackOpeningPanel(cards, () -> {});
+        overlay.setBounds(0, 0, layeredPane.getWidth(), layeredPane.getHeight());
+        layeredPane.add(overlay, JLayeredPane.POPUP_LAYER);
+        overlay.requestFocusInWindow();
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g.create();

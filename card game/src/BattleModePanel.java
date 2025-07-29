@@ -13,7 +13,7 @@ public class BattleModePanel extends JPanel {
         JButton backButton = createModeButton("Back");
 
         pveButton.addActionListener(e -> main.startTowerBattle());
-        //pvpButton.addActionListener(e -> main.startPvP());
+        pvpButton.addActionListener(e -> MultiplayerConnectPopup.show(main));
         backButton.addActionListener(e -> main.openMainMenu());
 
         GridBagConstraints gbc = new GridBagConstraints();

@@ -12,6 +12,17 @@ public class BasicCard implements ICard {
     private List<AbilityType> abilities;
     private boolean hasRevived = false;
     private boolean hasUsedShadowDrain = false;
+    private int burnTurnsLeft = 0;
+    private int temporaryAttackReduction = 0;
+    private int attackReductionTurnsLeft = 0;
+    private boolean stunned = false;
+    private int hexTurnsLeft = 0;
+    private int turnsSinceLastRootsHeal = 0;
+    private int soothingBloomCounter = 0;
+    private boolean isLuringTarget = false;
+    private boolean hasDodged = false;
+    private boolean attackedThisTurn = false;
+    private int shieldAmount = 0;
 
     public BasicCard(String name, int attack, int health, String rarity, List<AbilityType> abilityType) {
         this.name = name;
@@ -73,7 +84,7 @@ public class BasicCard implements ICard {
 
     @Override
     public List<AbilityType> getAbilities() {
-        return abilities;
+        return new ArrayList<>(abilities);
     }
 
     @Override
@@ -91,23 +102,61 @@ public class BasicCard implements ICard {
         this.hasRebirthed = rebirthed;
     }
 
+    public void applyTemporaryAttackReduction(int amount, int turns){
+        temporaryAttackReduction = amount;
+        attackReductionTurnsLeft = turns;
+    }
+
+    public void tickAttackReduction(){
+        if (attackReductionTurnsLeft > 0){
+            attackReductionTurnsLeft--;
+            if (attackReductionTurnsLeft == 0){
+                temporaryAttackReduction = 0;
+            }
+        }
+    }
+
     public void attack(ICard target, Battle battle) {
+        if (this.stunned) {
+            return;
+        }
+
+        attackedThisTurn = true;
         boolean usedFlameFury = false;
-        for (AbilityType type : abilities) {
-            CardAbilities.onAttack(this, target, type, battle);
+
+        for (AbilityType type : new ArrayList<>(abilities)) {
+            CardAbilities.onAttack(this, target, target, type, battle);
             if (type == AbilityType.FLAME_FURY && (double) this.health / this.originalHealth < 0.3) {
                 usedFlameFury = true;
             }
         }
 
-        // Only deal default damage if Flame Fury didn't already do it
         if (!usedFlameFury) {
-            target.takeDamageWithAbilities(this.attack, battle);
+            target.takeDamageWithAbilities(getEffectiveAttack(), battle);
+        }
+
+        if (target.getHealth() <= 0 && abilities.contains(AbilityType.TIDE_TURN)){
+            int newHealth = this.getHealth() + 10;
+            this.setHealth(newHealth);
         }
     }
 
     @Override
     public void takeDamageWithAbilities(int damage, Battle battle) {
+
+        if (hasShield()){
+            int absorbed = Math.min(damage,shieldAmount);
+            damage -= absorbed;
+            shieldAmount -= absorbed;
+            if (damage > 0){
+                this.health = Math.max(0, this.health - damage);
+            }
+        }
+
+        if (this.getAbilities().contains(AbilityType.DEEP_SLIP) && !this.hasDodged) {
+            this.setHasDodged(true);
+            return; // No damage taken
+        }
         if (battle.isGlacialShieldActive(this)) {
             damage = (int) Math.ceil(damage * 0.5);
         }
@@ -118,33 +167,41 @@ public class BasicCard implements ICard {
                 ? Battle.getCurrentOpponentCard()
                 : battle.selectedPlayerCard;
 
+        boolean usedFlameFury = false;
+        boolean usedWhiteStrike = false;
+
         for (AbilityType type : abilities) {
-            CardAbilities.onTakeDamage(this, attacker, damage, type, battle);
-        }
+            CardAbilities.onDefend(attacker, this, type, battle);
 
-        if (this.health <= 0) {
-            // Fire Rebirth logic first
-            if (!hasRebirthed && abilities.contains(AbilityType.FIRE_REBIRTH)) {
-                this.health = Math.max(1, originalHealth / 2);
-                this.hasRebirthed = true;
-                return; // Rebirth saved the card, skip death logic
-            }
-
-            for (AbilityType type : abilities) {
-                CardAbilities.onDeath(this, attacker, type, battle);
+            if (type == AbilityType.WHITE_STRIKE) {
+                List<ICard> allies = battle.getPlayerDeck(); // same check here
+                boolean isPlayer = this == battle.getSelectedPlayerCard();
+                List<ICard> friendly = isPlayer ? battle.getPlayerDeck() : battle.getOpponentDeck();
+                long aliveOthers = friendly.stream().filter(c -> c.getHealth() > 0 && c != this).count();
+                if (aliveOthers == 0) usedWhiteStrike = true;
             }
         }
     }
 
     public void startTurn(Battle battle) {
+        attackedThisTurn = false;
+        ICard defender = (this == battle.selectedPlayerCard)
+                ? Battle.getCurrentOpponentCard()
+                : battle.selectedPlayerCard;
+
         for (AbilityType type : abilities) {
-            CardAbilities.onTurnStart(this, type, battle);
+            CardAbilities.onTurnStart(this, defender, this, type, battle);
         }
     }
 
     public void endTurn(Battle battle) {
+        tickAttackReduction();
+        ICard defender = (this == battle.selectedPlayerCard)
+                ? Battle.getCurrentOpponentCard()
+                : battle.selectedPlayerCard;
+
         for (AbilityType type : abilities) {
-            CardAbilities.onTurnEnd(this, type, battle);
+            CardAbilities.onTurnEnd(this, defender, this, type, battle);
         }
     }
 
@@ -163,6 +220,139 @@ public class BasicCard implements ICard {
     public void setHasUsedShadowDrain(boolean used) {
         this.hasUsedShadowDrain = used;
     }
+
+    @Override
+    public boolean isBurning(){
+        return burnTurnsLeft > 0;
+    }
+
+    @Override
+    public void applyBurn(int turns){
+        burnTurnsLeft = turns;
+    }
+
+    @Override
+    public void tickBurn(){
+        if (burnTurnsLeft > 0){
+            this.takeDamage(3);
+            burnTurnsLeft--;
+        }
+    }
+
+    @Override
+    public boolean isStunned(){
+        return stunned;
+    }
+
+    @Override
+    public void setStunned(boolean stunned){
+        this.stunned = stunned;
+    }
+
+    @Override
+    public int getEffectiveAttack(){
+        return Math.max(0, attack - temporaryAttackReduction);
+    }
+
+    @Override
+    public void applyHex(int turns){
+        this.hexTurnsLeft = turns;
+    }
+
+    @Override
+    public boolean isHexed(){
+        return hexTurnsLeft > 0;
+    }
+
+    @Override
+    public void tickHex(){
+        if (hexTurnsLeft > 0){
+            hexTurnsLeft--;
+        }
+    }
+
+    public void incrementRootsCounter(){
+        turnsSinceLastRootsHeal++;
+    }
+
+    public boolean shouldTriggerRootsHeal(){
+        if (turnsSinceLastRootsHeal >= 2){
+            turnsSinceLastRootsHeal = 0;
+            return true;
+        }
+        return false;
+    }
+
+    public void incrementSoothingBloomCounter(){
+        soothingBloomCounter++;
+    }
+
+    public boolean shouldTriggerSoothingBlom(){
+        if (soothingBloomCounter >= 2){
+            soothingBloomCounter = 0;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isLuringTarget(){
+        return isLuringTarget;
+    }
+
+    public void setLuringTarget(boolean lure){
+        this.isLuringTarget = lure;
+    }
+
+    public boolean hasDodged(){
+        return hasDodged;
+    }
+
+    public void setHasDodged(boolean hasDodged){
+        this.hasDodged = hasDodged;
+    }
+
+    public void setAttackedThisTurn(boolean attacked){
+        this.attackedThisTurn = attacked;
+    }
+
+    public boolean hasAttackedThisTurn(){
+        return attackedThisTurn;
+    }
+
+    @Override
+    public boolean isRevealed() {
+        return false;
+    }
+
+    public void applyShield(int amount){
+        this.shieldAmount = Math.max(shieldAmount, amount);
+    }
+
+    public boolean hasShield(){
+        return shieldAmount > 0;
+    }
+
+    public void consumeShield(){
+        this.shieldAmount = 0;
+    }
+
+    @Override
+    public void resetStatus(){
+        this.hasRevived = false;
+        this.hasUsedShadowDrain = false;
+        this.burnTurnsLeft = 0;
+        this.temporaryAttackReduction = 0;
+        this.attackReductionTurnsLeft = 0;
+        this.stunned = false;
+        this.hasRebirthed = false;
+        this.hexTurnsLeft = 0;
+        this.turnsSinceLastRootsHeal = 0;
+        this.soothingBloomCounter = 0;
+        this.hasDodged = false;
+        this.shieldAmount = 0;
+    }
+
+
 
     @Override
     public String toString() {

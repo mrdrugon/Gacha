@@ -168,6 +168,52 @@ public class CardRenderer {
                 return "Deals 10 damage to both itself and the enemy on attack.";
             case DARK_VISION:
                 return "Reveals a random card in the opponent's hand and weakens it by 3 attack.";
+            case SUNSTRIKE:
+                return "Deals extra damage if the opponent has a higher attack than this card.";
+            case RUST_RESISTANCE:
+                return "Immune to debuffs.";
+            case METAL_SLUSH:
+                return "Has a 50% chance to attack twice in a turn.";
+            case SILVER_SHIELD:
+                return "Increases defense of a friendly card by 10.";
+            case SOLAR_FLARE:
+                return "Deals damage and burns the enemy for 2 turns (deals 3 damage per turn).";
+            case SHADOW_SLASH:
+                return "Deals damage and has a 30% chance to reduce an enemy card's attack for 1 turn.";
+            case WHITE_STRIKE:
+                return "Deals double damage if no other friendly cards are alive.";
+            case DUALITY:
+                return "Can copy the ability of any dead card.";
+            case MIND_WARP:
+                return "Reduces a random enemy card’s attack by 3.";
+            case PHANTOM_STRIKE:
+                return "Has a 20% chance to stun the target for 1 turn.";
+            case PHOTOSYNYHESIS:
+                return "Restores 5 health every time a friendly card is attacked.";
+            case HEX:
+                return "Disables an enemy’s ability for 1 turn.";
+            case SPREADING_ROOTS:
+                return "Heals all friendly cards by 3 every 2 turns.";
+            case SOOTHING_BLOOM:
+                return "Heals 8 health to a random friendly card every 2 turns.";
+            case SEED_SCATTER:
+                return "On death, summons a 5-health “Dandelion Puff” with 1 attack.";
+            case HEALING_SPROUT:
+                return "Heals a friendly card for 15 health every 2 turns.";
+            case WILD_ROAR:
+                return "Deals 5 damage to all enemy cards and heals itself by 5.";
+            case TIDE_TURN:
+                return "If this card kills a card, it gains +10 health.";
+            case LURING_SONG:
+                return "Forces an enemy card to attack it next turn.";
+            case DEEP_SLIP:
+                return "Dodges the first attack made against it.";
+            case OCEANS_PATIENCE:
+                return "Gains +2 attack and +5 health every turn it doesn’t attack.";
+            case ENTANGLE:
+                return "Reduces enemy’s attack by 4.";
+            case PROTECTIVE_GLEAM:
+                return "On summon, shields the lowest-health friendly card for 15 damage.";
             // Add others
             default:
                 return "";
@@ -217,32 +263,53 @@ public class CardRenderer {
 
     public static Color getCardColor(ICard card) {
         switch (card.getName()) {
-            case "Red": return Color.RED;
             case "Azure Guardian": return Color.BLUE;
             case "Verdant Guardian": return Color.GREEN;
             case "Yellow Avenger": return Color.YELLOW;
             case "Citrine Monk": return Color.ORANGE;
-            case "Pink": return Color.PINK;
-            case "Purple": return new Color(157,0,255);
             case "Crimson Berserker": return new Color(178,34,34);
             case "Scarlet Phoenix": return new Color(250,0,63);
             case "Blue Ice Warden": return new Color(0,255,240);
-            case "Nightmare Specter": return new Color(127,0,255);
             case "Volcanic Golem": return new Color(255,133,89);
             case "Frost Titan": return new Color(0,255,255);
             case "Flamingo": return new Color(252,142,172);
-
-            case "Blazing Lion": return new Color(198,131,70);
-            case "Lead": return new Color(76,87,108);
-            case "Platinum": return new Color(217,217,217);
-            case "Silver": return new Color(192, 192, 192);
-            case "Sunset Golem": return new Color(255, 215, 0);
-
-            case "Sapphire": return new Color(15,82,186);
-            case "Ruby": return new Color(224,17,95);
-            case "Zephyr Falcon": return new Color(80,200,120);
-            case "Prism Dragon": return new Color(153,102,204);
-            case "Rainbow": return Color.MAGENTA;
+            case "Golden Warrior": return new Color(255, 215, 0);
+            case "Silver Sentinel": return new Color(100, 100, 100);
+            case "Luminous Priest": return new Color(253, 253, 150);
+            case "Shadow Phantom": return new Color(63,16,79);
+            case "Ivory Knight": return new Color(255, 255, 240);
+            case "Nightmare Specter": return new Color(0,0,46);
+            case "Coral Siren": return new Color(255, 127, 80);
+            case "Emerald Sorceress": return new Color(80, 200, 120);
+            case "Amethyst Phantom": return new Color(153,102,204);
+            case "Obsidian Wraith": return new Color(61,53,75);
+            case "Dandelion Puff": return new Color(240,225,48);
+            case "Blazing Lion": return new Color(241,61,54);
+            case "Solar Paladin": return new Color(238,176,58);
+            case "Zephyr Falcon": return new Color(176,211,234);
+            case "Steel Knight": return new Color(115, 133, 149);
+            case "Void Mage": return new Color(45,0,67);
+            case "Tidal Leviathan": return new Color(64, 96, 124);
+            case "Sapphire Mage": return new Color(43,61,171);
+            case "Diamond Titan": return new Color(203,227,240);
+            case "Onyx Oracle": return new Color(53,56,57);
+            case "Twilight Witch": return new Color(78, 81, 139);
+            case "Wishblossom": return new Color(255, 183, 197);
+            case "Sunset Golem": return new Color(251, 158, 58);
+            case "Tempest Serpent": return new Color(122,142,167);
+            case "Amber Phoenix": return new Color(255, 191, 0);
+            case "Copper Golem": return new Color(198,131,70);
+            case "Sea Turtle Sentinel": return new Color(73,97,77);
+            case "Kraken's Tentacle": return new Color(0,22,40);
+            case "Forest Spirit": return new Color(40, 54, 24);
+            case "Pearl Warden": return new Color(234,224,200);
+            case "Meadow Warden": return new Color(121,203,145);
+            case "Lavender Spirit": return new Color(211,211,255);
+            case "Prism Dragon": return new Color(136, 9, 181);
+            case "Rainbow Phoenix": return new Color(19, 125, 224);
+            case "Ruby Dragon": return new Color(155,17,30);
+            case "Blooming Dryad": return new Color(254,161,179);
+            case "Forest Beast": return new Color(96, 108, 56);
             default: return new Color(100, 100, 100);
         }
     }

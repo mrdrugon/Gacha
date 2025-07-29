@@ -1,22 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class ShopPanel extends JPanel {
     private final Main main;
-    private final List<PackType> packTypes = List.of(PackType.NORMAL, PackType.METAL, PackType.GEM_STONES, PackType.FOREST, PackType.OCEAN, PackType.BLACK_WHITE);
-    private final String[] packImagePaths = {
-            "card game/cards/pack.png",
-            "card game/cards/pack.png",
-            "card game/cards/pack.png",
-            "card game/cards/pack.png",
-            "card game/cards/pack.png",
-            "card game/cards/pack.png"
-    };
-    private final int[] packPrices = {10, 10, 10, 10, 10, 10};
-
     private JLabel pointsLabel;
 
     public ShopPanel(Main main, Inventory inventory) {
@@ -40,63 +27,52 @@ public class ShopPanel extends JPanel {
         add(backButton);
         backButton.addActionListener(e -> main.openMainMenu());
 
-        // Scrollable panel to hold pack options
-        JPanel packScrollPanel = new JPanel(null);
-        int packWidth = 600;
-        int packHeight = 900;
-        int gap = 40;
+        // Display single pack image
+        JLabel packImage = new JLabel(new ImageIcon("card game/cards/pack.png"));
+        packImage.setBounds((screenWidth - 300) / 2, 100, 300, 400);
+        add(packImage);
 
-        int totalWidth = packTypes.size() * (packWidth + gap);
-        packScrollPanel.setPreferredSize(new Dimension(totalWidth, packHeight));
+        // Buy 1 card button
+        JButton buyOneButton = new JButton("Buy 1 Card (1 Point)");
+        buyOneButton.setFont(new Font("Arial", Font.BOLD, 22));
+        buyOneButton.setBounds((screenWidth / 2) - 220, 550, 200, 60);
+        add(buyOneButton);
 
-        for (int i = 0; i < packTypes.size(); i++) {
-            int index = i;
+        buyOneButton.addActionListener(e -> {
+            if (main.getTowerManager().getCurrentPoints() >= 1) {
+                main.getTowerManager().spendPoints(1);
+                updatePoints();
 
-            JPanel packPanel = new JPanel(null);
-            packPanel.setBackground(new Color(50, 50, 50));
-            packPanel.setBounds(i * (packWidth + gap), 0, packWidth, packHeight);
+                Pack pack = PackFactory.createPack(PackType.NORMAL);
+                List<ICard> newCards = pack.openPack(); // 1 card
+                main.getInventory().addCards(newCards);
+                main.log("Bought 1 card for 1 point.");
+                main.openCards(newCards);
+            } else {
+                main.log("Not enough points.");
+            }
+        });
 
-            JLabel imageLabel = new JLabel(new ImageIcon(packImagePaths[i]));
-            imageLabel.setBounds(0, 0, packWidth, 800);
-            packPanel.add(imageLabel);
+        // Buy 10 cards button
+        JButton buyTenButton = new JButton("Buy 10 Cards (9 Points)");
+        buyTenButton.setFont(new Font("Arial", Font.BOLD, 22));
+        buyTenButton.setBounds((screenWidth / 2) + 20, 550, 250, 60);
+        add(buyTenButton);
 
-            JLabel priceLabel = new JLabel(packPrices[i] + " Points", SwingConstants.CENTER);
-            priceLabel.setForeground(Color.WHITE);
-            priceLabel.setFont(new Font("Arial", Font.BOLD, 22));
-            priceLabel.setBounds(0, 820, packWidth, 30);
-            packPanel.add(priceLabel);
+        buyTenButton.addActionListener(e -> {
+            if (main.getTowerManager().getCurrentPoints() >= 9) {
+                main.getTowerManager().spendPoints(9);
+                updatePoints();
 
-            imageLabel.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    int cost = packPrices[index];
-                    if (main.getTowerManager().getCurrentPoints() >= cost) {
-                        main.getTowerManager().spendPoints(cost);
-                        updatePoints();
-
-                        Pack pack = PackFactory.createPack(packTypes.get(index));
-                        List<ICard> newCards = pack.openPack();
-                        main.getInventory().addCards(newCards);
-                        main.log("Bought " + packTypes.get(index) + " pack for " + cost + " points.");
-                        main.openPack(packTypes.get(index));
-                    } else {
-                        main.log("Not enough points.");
-                    }
-                }
-
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    imageLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                }
-            });
-
-            packScrollPanel.add(packPanel);
-        }
-
-        JScrollPane scrollPane = new JScrollPane(packScrollPanel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scrollPane.setBounds(0, 100, screenWidth, screenHeight - 100);
-        scrollPane.getHorizontalScrollBar().setUnitIncrement(30);
-        add(scrollPane);
+                Pack pack = PackFactory.createPack(PackType.NORMAL);
+                List<ICard> newCards = pack.openPack(); // 10 cards
+                main.getInventory().addCards(newCards);
+                main.log("Bought 10 cards for 9 points.");
+                main.openCards(newCards);
+            } else {
+                main.log("Not enough points.");
+            }
+        });
     }
 
     private void updatePoints() {
