@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Gacha0.1a:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Gacha0_1a_jar</output-path>
+    <root id="archive" name="Gacha.jar">
+      <element id="module-output" name="Gacha" />
+    </root>
+  </artifact>
+</component>

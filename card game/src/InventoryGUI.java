@@ -29,7 +29,7 @@ public class InventoryGUI {
         topPanel.setOpaque(false);
 
         // Load back button image
-        ImageIcon backIcon = new ImageIcon("card game/cards/Battle.png"); // Make sure the path is correct
+        ImageIcon backIcon = new ImageIcon(getClass().getClassLoader().getResource("card_game/cards/Battle.png")); // Make sure the path is correct
         JButton backButton = new JButton(backIcon);
         backButton.setPreferredSize(new Dimension(50, 50)); // Adjust size to fit your image
         backButton.setContentAreaFilled(false);
@@ -61,7 +61,7 @@ public class InventoryGUI {
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.setOpaque(false);
 
-        ImageIcon backIcon = new ImageIcon("card game/cards/Battle.png"); // use a dedicated back icon later
+        ImageIcon backIcon = new ImageIcon(getClass().getClassLoader().getResource("card_game/cards/Battle.png")); // use a dedicated back icon later
         JButton backButton = new JButton(backIcon);
         backButton.setPreferredSize(new Dimension(50, 50));
         backButton.setContentAreaFilled(false);

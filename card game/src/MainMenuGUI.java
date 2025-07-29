@@ -97,11 +97,11 @@ public class MainMenuGUI extends JPanel {
         add(currencyLabel);
 
         // Load images for the buttons (ensure that the image paths are correct)
-        ImageIcon battleIcon = resizeImage("card game/cards/Battle_Button.png", battleWidth, battleHeight);
-        ImageIcon inventoryIcon = resizeImage("card game/cards/Inventory_Button.png", inventoryWidth, inventoryHeight);
-        ImageIcon storeIcon = resizeImage("card game/cards/Shop_Button.png", storeWidth, storeHeight);
+        ImageIcon battleIcon = resizeImage("card_game/cards/Battle_Button.png", battleWidth, battleHeight);
+        ImageIcon inventoryIcon = resizeImage("card_game/cards/Inventory_Button.png", inventoryWidth, inventoryHeight);
+        ImageIcon storeIcon = resizeImage("card_game/cards/Shop_Button.png", storeWidth, storeHeight);
         // For the exit button, using the Battle image as a placeholder
-        ImageIcon exitIcon = resizeImage("card game/cards/Exit_Button.png", exitWidth, exitHeight);
+        ImageIcon exitIcon = resizeImage("card_game/cards/Exit_Button.png", exitWidth, exitHeight);
 
         // Create and position the Battle button.
         battleButton = new JButton("BATTLE", battleIcon);
@@ -184,7 +184,12 @@ public class MainMenuGUI extends JPanel {
 
     // Utility to resize an image from the given file path.
     public static ImageIcon resizeImage(String path, int width, int height) {
-        ImageIcon icon = new ImageIcon(path);
+        java.net.URL imgURL = MainMenuGUI.class.getClassLoader().getResource(path);
+        if (imgURL == null) {
+            System.err.println("Couldn't find file: " + path);
+            return null;
+        }
+        ImageIcon icon = new ImageIcon(imgURL);
         Image scaledImage = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
         return new ImageIcon(scaledImage);
     }

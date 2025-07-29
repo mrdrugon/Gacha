@@ -29,7 +29,7 @@ public class PackOpeningPanel extends JPanel {
         setOpaque(false);
         setLayout(null);
 
-        packImage = new ImageIcon("card game/cards/pack.png").getImage();
+        packImage = new ImageIcon(getClass().getClassLoader().getResource("card_game/cards/pack.png")).getImage();
         packLabel = new JLabel(new ImageIcon(packImage));
         packLabel.setHorizontalAlignment(JLabel.CENTER);
         packLabel.addMouseListener(new MouseAdapter() {
@@ -184,7 +184,7 @@ public class PackOpeningPanel extends JPanel {
 
     private BufferedImage loadRarityEffect(String rarity, int width, int height) {
         try {
-            BufferedImage glow = ImageIO.read(new File("card game/cards/RarityEffect.png"));
+            BufferedImage glow = ImageIO.read(getClass().getClassLoader().getResourceAsStream("card_game/cards/RarityEffect.png"));
             BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = combined.createGraphics();
 
