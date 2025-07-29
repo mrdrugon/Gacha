@@ -73,11 +73,11 @@ final class NormalPack implements Pack {
     private static final int RARE_CHANCE = 90;
     private static final int EPIC_CHANCE = 99;
 
-
-    public List<ICard> openPack() {
+    @Override
+    public List<ICard> openPack(int count) {
         List<ICard> pack = new ArrayList<>();
 
-        for (int i = 0; i < PACK_SIZE; i++) {
+        for (int i = 0; i < count; i++) {
             int chance = rand.nextInt(100);
 
             ICard card;
@@ -96,6 +96,11 @@ final class NormalPack implements Pack {
             pack.add(card);
         }
         return pack;
+    }
+
+    @Override
+    public List<ICard> openPack() {
+        return openPack(PACK_SIZE);  // default 5 cards
     }
 
     private static ICard createNewCard(BasicCard[] cardPool) {

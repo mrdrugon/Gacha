@@ -144,7 +144,7 @@ public class Main extends JFrame {
                 cardPanel.add(mainMenu, "MainMenu");
 
                 cardLayout.show(cardPanel, "MainMenu");// Switch to main menu
-                openPack(PackType.NORMAL);
+                openPack(PackType.NORMAL, 5);
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid login", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -181,9 +181,9 @@ public class Main extends JFrame {
         return towerManager;
     }
 
-    public void openPack(PackType type) {
+    public void openPack(PackType type, int count) {
         Pack pack = PackFactory.createPack(type);
-        List<ICard> newCards = pack.openPack();
+        List<ICard> newCards = pack.openPack(count); // ← pass count
         inventory.addCards(newCards);
 
         final PackOpeningPanel[] overlay = new PackOpeningPanel[1];

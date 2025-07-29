@@ -33,44 +33,32 @@ public class ShopPanel extends JPanel {
         add(packImage);
 
         // Buy 1 card button
-        JButton buyOneButton = new JButton("Buy 1 Card (1 Point)");
+        JButton buyOneButton = new JButton("1 Card (1 Point)");
         buyOneButton.setFont(new Font("Arial", Font.BOLD, 22));
         buyOneButton.setBounds((screenWidth / 2) - 220, 550, 200, 60);
         add(buyOneButton);
 
         buyOneButton.addActionListener(e -> {
-            if (main.getTowerManager().getCurrentPoints() >= 1) {
-                main.getTowerManager().spendPoints(1);
+            if (main.getTowerManager().getCurrentPoints() >= 10) {
+                main.getTowerManager().spendPoints(10);
                 updatePoints();
 
-                Pack pack = PackFactory.createPack(PackType.NORMAL);
-                List<ICard> newCards = pack.openPack(); // 1 card
-                main.getInventory().addCards(newCards);
-                main.log("Bought 1 card for 1 point.");
-                main.openCards(newCards);
-            } else {
-                main.log("Not enough points.");
+                main.openPack(PackType.NORMAL, 1); // ✅ fixed
             }
         });
 
         // Buy 10 cards button
-        JButton buyTenButton = new JButton("Buy 10 Cards (9 Points)");
+        JButton buyTenButton = new JButton("10 Cards (9 Points)");
         buyTenButton.setFont(new Font("Arial", Font.BOLD, 22));
         buyTenButton.setBounds((screenWidth / 2) + 20, 550, 250, 60);
         add(buyTenButton);
 
         buyTenButton.addActionListener(e -> {
-            if (main.getTowerManager().getCurrentPoints() >= 9) {
-                main.getTowerManager().spendPoints(9);
+            if (main.getTowerManager().getCurrentPoints() >= 1000) {
+                main.getTowerManager().spendPoints(1000);
                 updatePoints();
 
-                Pack pack = PackFactory.createPack(PackType.NORMAL);
-                List<ICard> newCards = pack.openPack(); // 10 cards
-                main.getInventory().addCards(newCards);
-                main.log("Bought 10 cards for 9 points.");
-                main.openCards(newCards);
-            } else {
-                main.log("Not enough points.");
+                main.openPack(PackType.NORMAL, 10); // ✅ fixed
             }
         });
     }
