@@ -93,8 +93,13 @@ public class CardRenderer {
         }
 
         // Set text properties
-        g2d.setColor(Color.BLACK);
-        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+
+        if (card.getName() == "Nightmare Specter" || card.getName() == "Obsidian Wraith" || card.getName() == "Void Mage" || card.getName() == "Kraken's Tentacle" || card.getName() == "Shadow Phantom" || card.getName() == "Onyx Oracle" || card.getName() == "Azure Guardian"){
+            g2d.setColor(Color.WHITE);
+        } else {
+            g2d.setColor(Color.BLACK);
+            g2d.setFont(new Font("Arial", Font.BOLD, 14));
+        }
 
         // Draw Name (centered)
         FontMetrics fm = g2d.getFontMetrics();

@@ -147,22 +147,16 @@ public class CardAbilities {
                 applyWaterShieldHealing(card);
                 break;
             case SILVER_SHIELD:
-                List<ICard> friendlyCards = battle.getPlayerDeck(); // assuming current card is player's
-                if (!friendlyCards.contains(card)) {
-                    friendlyCards = battle.getOpponentDeck(); // fallback for AI
-                }
+                List<ICard> team = battle.isPlayerCard(card) ? battle.getPlayerDeck() : battle.getOpponentDeck();
+                List<ICard> eligibleTargets = team.stream()
+                        .filter(c -> c != card && c.getHealth() > 0)
+                        .toList();
 
-                // Pick another friendly card (not the one with the shield)
-                List<ICard> eligible = new ArrayList<>();
-                for (ICard c : friendlyCards) {
-                    if (c != card && c.getHealth() > 0) {
-                        eligible.add(c);
+                if (!eligibleTargets.isEmpty()) {
+                    ICard target = eligibleTargets.get(battle.random.nextInt(eligibleTargets.size()));
+                    if (target instanceof BasicCard basicTarget) {
+                        basicTarget.setHealth(basicTarget.getHealth() + 10);
                     }
-                }
-
-                if (!eligible.isEmpty()) {
-                    ICard target = eligible.get((int) (Math.random() * eligible.size()));
-                    target.setHealth(target.getHealth() + 10);
                 }
                 break;
             case DUALITY:

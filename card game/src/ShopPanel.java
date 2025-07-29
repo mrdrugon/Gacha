@@ -39,8 +39,8 @@ public class ShopPanel extends JPanel {
         add(buyOneButton);
 
         buyOneButton.addActionListener(e -> {
-            if (main.getTowerManager().getCurrentPoints() >= 100) {
-                main.getTowerManager().spendPoints(100);
+            if (main.getTowerManager().getCurrentPoints() >= 10) {
+                main.getTowerManager().spendPoints(10);
                 updatePoints();
 
                 main.openPack(PackType.NORMAL, 1); // ✅ fixed
@@ -54,8 +54,8 @@ public class ShopPanel extends JPanel {
         add(buyTenButton);
 
         buyTenButton.addActionListener(e -> {
-            if (main.getTowerManager().getCurrentPoints() >= 10) {
-                main.getTowerManager().spendPoints(10);
+            if (main.getTowerManager().getCurrentPoints() >= 100) {
+                main.getTowerManager().spendPoints(100);
                 updatePoints();
 
                 main.openPack(PackType.NORMAL, 10); // ✅ fixed

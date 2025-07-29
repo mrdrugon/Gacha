@@ -28,6 +28,7 @@ public class Battle {
         this.opponentCardsMap = new HashMap<>();
         this.poisonedCards = new HashMap<>();
         this.opponentIndex = 0;
+        this.random = new Random();
 
         // Map player's cards by their ID.
         for (ICard card : playerDeck) {

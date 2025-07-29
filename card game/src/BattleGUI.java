@@ -153,39 +153,33 @@ public class BattleGUI extends JPanel{
             tryStartMultiplayerBattle();
         } else {
             opponentSelectedCard = battle.getNextOpponentCard();
-            proceedWithBattleRound();
-        }
 
-        ICard opponentCard = battle.getNextOpponentCard();
-        if (opponentCard == null) {
-            return;
-        }
+            // Proceed with battle directly here, without calling proceedWithBattleRound()
+            BattlePanel battlePanel = new BattlePanel();
+            CardPanel playerCardPanel = new CardPanel(selectedCard);
+            CardPanel opponentCardPanel = new CardPanel(opponentSelectedCard);
+            BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
 
-        BattlePanel battlePanel = new BattlePanel();
-        CardPanel playerCardPanel = new CardPanel(selectedCard);
-        CardPanel opponentCardPanel = new CardPanel(opponentCard);
-        BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
+            add(battlePanel, BorderLayout.CENTER);
+            revalidate();
+            repaint();
 
-        add(battlePanel, BorderLayout.CENTER);
+            SwingUtilities.invokeLater(() -> {
+                animateBattle(playerCardPanel, opponentCardPanel, () -> {
+                    boolean battleOver = battle.playNextRound();
+                    updatePlayerDeckUI();
+                    updateOpponentDeckUI();
+                    checkForBattleEnd();
 
-        revalidate();
-        repaint();
+                    isTurnActive = true;
 
-        SwingUtilities.invokeLater(() -> {
-            animateBattle(playerCardPanel, opponentCardPanel, () -> {
-                boolean battleOver = battle.playNextRound();
-                updatePlayerDeckUI();
-                updateOpponentDeckUI();
-                checkForBattleEnd();
-
-                isTurnActive = true; // Re-enable clicks after battle
-
-                if (battleOver) {
-                    disableAllButtons();
-                    resetPlayerCards();
-                }
+                    if (battleOver) {
+                        disableAllButtons();
+                        resetPlayerCards();
+                    }
+                });
             });
-        });
+        }
     }
 
     private void animateBattle(CardPanel playerCard, CardPanel opponentCard, Runnable onComplete) {
@@ -395,7 +389,6 @@ public class BattleGUI extends JPanel{
 
         SwingUtilities.invokeLater(() ->{
             animateBattle(playerCardPanel, opponentCardPanel, () ->{
-                battle.playNextRound();
                 updatePlayerDeckUI();
                 updateOpponentDeckUI();
                 checkForBattleEnd();

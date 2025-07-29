@@ -22,7 +22,6 @@ final class NormalPack implements Pack {
             new BasicCard("Dandelion Puff", 1, 5, "Common", null)
     };
 
-
     private static final BasicCard[] UNCOMMON_CARDS = {
             new BasicCard("Citrine Monk", 7, 40, "Uncommon", Collections.singletonList(AbilityType.RADIANT_BALANCE)),
             new BasicCard("Blazing Lion", 9, 45, "Uncommon", Collections.singletonList(AbilityType.BURNING_CLAWS)),
