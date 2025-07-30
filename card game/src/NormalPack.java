@@ -15,7 +15,6 @@ final class NormalPack implements Pack {
             new BasicCard("Shadow Phantom", 8, 30, "Common", Collections.singletonList(AbilityType.SHADOW_SLASH)),
             new BasicCard("Ivory Knight", 8, 30, "Common", Collections.singletonList(AbilityType.WHITE_STRIKE)),
             new BasicCard("Nightmare Specter", 8, 30, "Common", Collections.singletonList(AbilityType.PHANTOM_STRIKE)),
-            new BasicCard("Coral Siren", 8, 30, "Common", Collections.singletonList(AbilityType.LURING_SONG)),
             new BasicCard("Emerald Sorceress", 8, 30, "Common", Collections.singletonList(AbilityType.GEM_SHIELD)),
             new BasicCard("Amethyst Phantom", 8, 30, "Common", Collections.singletonList(AbilityType.SHADOW_DRAIN)),
             new BasicCard("Obsidian Wraith", 8, 30, "Common", Collections.singletonList(AbilityType.VOLCANIC_CORE)),
@@ -44,8 +43,6 @@ final class NormalPack implements Pack {
             new BasicCard("Sunset Golem", 5, 80, "Rare", Collections.singletonList(AbilityType.MOLTEN_CORE)),
             new BasicCard("Tempest Serpent", 10, 65, "Rare", Collections.singletonList(AbilityType.CYCLONE_FURY)),
             new BasicCard("Amber Phoenix", 9, 50, "Rare", Collections.singletonList(AbilityType.ASHEN_WINGS)),
-            new BasicCard("Copper Golem", 8, 30, "Rare", Collections.singletonList(AbilityType.RUST_RESISTANCE)),
-            new BasicCard("Kraken's Tentacle", 8, 30, "Rare", Collections.singletonList(AbilityType.ENTANGLE)),
             new BasicCard("Forest Spirit", 8, 30, "Rare", Collections.singletonList(AbilityType.PHOTOSYNTHESIS))
     };
 
