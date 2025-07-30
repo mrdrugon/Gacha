@@ -1,0 +1,47 @@
+# name,attack,health,rarity,abilities
+Yellow Avenger,8,30,Common,LIGHTNING_CHARGE
+Blue Ice Warden,5,40,Common,FROSTBITE
+Verdant Guardian,6,50,Common,THORN_ARMOR
+Volcanic Golem,10,30,Common,LAVA_SURGE
+Golden Warrior,8,30,Common,SUNSTRIKE
+Silver Sentinel,8,30,Common,SILVER_SHIELD
+Luminous Priest,8,30,Common,SOLAR_FLARE
+Shadow Phantom,8,30,Common,SHADOW_SLASH
+Ivory Knight,8,30,Common,WHITE_STRIKE
+Nightmare Specter,8,30,Common,PHANTOM_STRIKE
+Emerald Sorceress,8,30,Common,GEM_SHIELD
+Amethyst Phantom,8,30,Common,SHADOW_DRAIN
+Obsidian Wraith,8,30,Common,VOLCANIC_CORE
+
+Citrine Monk,7,40,Uncommon,RADIANT_BALANCE
+Blazing Lion,9,45,Uncommon,BURNING_CLAWS
+Solar Paladin,10,60,Uncommon,RADIANT_LIGHT
+Zephyr Falcon,8,50,Uncommon,GALE_FORCE
+Frost Titan,9,70,Uncommon,GLACIAL_SHIELD
+Steel Knight,8,30,Uncommon,METAL_SLUSH
+Grayscale Trickster,8,30,Uncommon,DUALITY
+Void Mage,8,30,Uncommon,MIND_WARP
+Tidal Leviathan,8,30,Uncommon,TIDE_TURN
+Sapphire Mage,8,30,Uncommon,WATER_SHIELD
+Diamond Titan,8,30,Uncommon,SHIMMERING_RETALIATION
+Onyx Oracle,8,30,Uncommon,DARK_VISION
+Twilight Witch,8,30,Uncommon,HEX
+Wishblossom,8,30,Uncommon,SOOTHING_BLOOM
+
+Azure Guardian,8,60,Rare,OCEANS_GRASP
+Sunset Golem,5,80,Rare,MOLTEN_CORE
+Tempest Serpent,10,65,Rare,CYCLONE_FURY
+Amber Phoenix,9,50,Rare,ASHEN_WINGS
+Forest Spirit,8,30,Rare,PHOTOSYNTHESIS
+
+Crimson Berserker,12,40,Epic,FLAME_FURY
+Scarlet Phoenix,10,50,Epic,FIRE_REBIRTH
+Pearl Warden,8,30,Epic,PROTECTIVE_GLEAM
+Meadow Warden,8,30,Epic,SPREADING_ROOTS
+Lavender Spirit,8,30,Epic,SOOTHING_BLOOM
+
+Prism Dragon,15,70,Legendary,RAINBOW_PULSE
+Rainbow Phoenix,20,90,Legendary,ETERNAL_FLAME
+Ruby Dragon,8,30,Legendary,FIRE_REBIRTH
+Blooming Dryad,8,30,Legendary,HEALING_SPROUT
+Forest Beast,8,30,Legendary,WILD_ROAR
