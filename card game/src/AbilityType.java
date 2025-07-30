@@ -33,7 +33,7 @@ public enum AbilityType {
     DUALITY,
     MIND_WARP,
     PHANTOM_STRIKE,
-    PHOTOSYNYHESIS,
+    PHOTOSYNTHESIS,
     HEX,
     SPREADING_ROOTS,
     SOOTHING_BLOOM,

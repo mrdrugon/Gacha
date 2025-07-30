@@ -48,7 +48,7 @@ final class NormalPack implements Pack {
             new BasicCard("Copper Golem", 8, 30, "Rare", Collections.singletonList(AbilityType.RUST_RESISTANCE)),
             new BasicCard("Sea Turtle Sentinel", 8, 30, "Rare", Collections.singletonList(AbilityType.OCEANS_PATIENCE)),
             new BasicCard("Kraken's Tentacle", 8, 30, "Rare", Collections.singletonList(AbilityType.ENTANGLE)),
-            new BasicCard("Forest Spirit", 8, 30, "Rare", Collections.singletonList(AbilityType.PHOTOSYNYHESIS))
+            new BasicCard("Forest Spirit", 8, 30, "Rare", Collections.singletonList(AbilityType.PHOTOSYNTHESIS))
     };
 
     private static final BasicCard[] EPIC_CARDS = {

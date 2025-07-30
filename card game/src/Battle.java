@@ -23,6 +23,8 @@ public class Battle {
     private final Set<ICard> revealedOpponentCards = new HashSet<>();
     private boolean isSecondAttack = false;
     private ICard cachedOpponentCard;
+    private Map<ICard, Integer> nextTurnBurningCards = new HashMap<>();
+    private Map<Integer, BattleGUI.CardPanel> cardPanelMap;
 
     public Battle(List<ICard> playerDeck, List<ICard> opponentDeck) {
         this.playerDeck = playerDeck;
@@ -94,6 +96,8 @@ public class Battle {
             }
         }
 
+        if (selectedPlayerCard instanceof BasicCard b) b.setAttackedLastTurn(true);
+
         // Opponent attacks if still alive
         if (opponentCard.getHealth() > 0 && !isFrozen(opponentCard)) {
             if (opponentCard instanceof BasicCard) {
@@ -102,6 +106,8 @@ public class Battle {
                 selectedPlayerCard.takeDamageWithAbilities(opponentCard.getAttack(), this);
             }
         }
+
+        if (opponentCard instanceof BasicCard b) b.setAttackedLastTurn(true);
 
         // End-of-turn effects
         if (selectedPlayerCard instanceof BasicCard) {
@@ -130,6 +136,13 @@ public class Battle {
         globalTurnCounter++;
         decrementBurningCards();
         tickGaleForceDebuff();
+
+        for (ICard card : playerDeck) {
+            if (card instanceof BasicCard b) b.setAttackedLastTurn(false);
+        }
+        for (ICard card : opponentDeck) {
+            if (card instanceof BasicCard b) b.setAttackedLastTurn(false);
+        }
 
         return isOpponentDefeated(); // return true if battle is over
     }
@@ -241,20 +254,42 @@ public class Battle {
     }
 
     public void applyBurn(ICard card, int turns) {
-        burningCards.put(card, turns);
+        nextTurnBurningCards.put(card, turns);
     }
 
     private void decrementBurningCards() {
-        Map<ICard, Integer> updated = new HashMap<>();
-        for (Map.Entry<ICard, Integer> entry : burningCards.entrySet()) {
+        Iterator<Map.Entry<ICard, Integer>> iterator = burningCards.entrySet().iterator();
+
+        while(iterator.hasNext()){
+            Map.Entry<ICard, Integer> entry = iterator.next();
             ICard card = entry.getKey();
             int turnsLeft = entry.getValue();
-            if (turnsLeft > 0 && card.getHealth() > 0) {
+
+            if (card.getHealth() <= 0 || turnsLeft <= 0){
+                iterator.remove();
+            } else {
                 card.takeDamageWithAbilities(3, this);
-                updated.put(card, turnsLeft - 1);
+                entry.setValue(turnsLeft - 1);
+
+                if (cardPanelMap != null){
+                    BattleGUI.CardPanel panel = cardPanelMap.get(card.getId());
+                    if (panel != null){
+                        panel.flashWhite();
+                    }
+                }
             }
         }
-        burningCards = updated;
+
+        burningCards.putAll(nextTurnBurningCards);
+        nextTurnBurningCards.clear();
+    }
+
+    public boolean isCardBurning(ICard card){
+        return burningCards.containsKey(card);
+    }
+
+    public void setCardPanelMap(Map<Integer, BattleGUI.CardPanel> map){
+        this.cardPanelMap = map;
     }
 
     public boolean isPlayerCard(ICard card) {

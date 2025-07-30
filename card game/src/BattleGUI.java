@@ -20,6 +20,8 @@ public class BattleGUI extends JPanel{
     private ICard localSelectedCard;
     private boolean isMultiplayer;
     private boolean debugColorsEnabled = false;
+    private Map<Integer, CardPanel> cardPanelMap = new HashMap<>();
+    private Map<Integer, Integer> opponentCardColorIndexMap = new HashMap<>();
 
     public BattleGUI(List<ICard> playerDeck, List<ICard> enemyDeck, Main main, BattleTowerManager towerManager, MainMenuGUI mainMenuGUI) {
         this.main = main;
@@ -89,7 +91,9 @@ public class BattleGUI extends JPanel{
 
         for (int i = 0; i < aliveCards.size(); i++) {
             ICard card = aliveCards.get(i);
-            CardPanel cardPanel = new CardPanel(card);
+            CardPanel cardPanel = new CardPanel(card, battle);
+            cardPanelMap.put(card.getId(), cardPanel);
+            battle.setCardPanelMap(cardPanelMap);
             cardPanel.setBounds(startX + i * xOffset, 0, cardWidth, cardHeight);
 
             cardPanel.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -127,28 +131,24 @@ public class BattleGUI extends JPanel{
         int totalWidth = (aliveCards.size() - 1) * xOffset + cardWidth;
         int startX = (opponentDeckPanel.getWidth() - totalWidth) / 2;
 
+        Set<Integer> stillAliveIds = new HashSet<>();
+        for (ICard card : aliveCards) {
+            stillAliveIds.add(card.getId());
+        }
+        opponentCardColorIndexMap.keySet().removeIf(id -> !stillAliveIds.contains(id));
+
         for (int i = 0; i < aliveCards.size(); i++) {
             ICard card = aliveCards.get(i);
-            JPanel cardPanel; // ✅ Use JPanel instead of CardPanel
+            if (!opponentCardColorIndexMap.containsKey(card.getId())) {
+                opponentCardColorIndexMap.put(card.getId(), i);
+            }
 
-            if (revealed.contains(card)) {
-                // Always create a fresh panel to reflect updated state
-                cardPanel = new CardPanel(card);
-                cardPanel.repaint();// 💥 Force UI to redraw health bar
+            JPanel cardPanel;
+            boolean isRevealed = revealed.contains(card) || debugColorsEnabled;
 
-                if (debugColorsEnabled) {
-                    Color debugColor = switch (i){
-                        case 0 -> Color.BLUE;
-                        case 1 -> Color.GREEN;
-                        case 2 -> Color.RED;
-                        case 3 -> Color.YELLOW;
-                        case 4 -> Color.MAGENTA;
-                        default -> Color.GRAY;
-                    };
-                    cardPanel.setBorder(BorderFactory.createLineBorder(debugColor, 5));
-            } else {
-                    cardPanel.setBorder(null);
-                }
+            if (isRevealed) {
+                cardPanel = new CardPanel(card, battle);
+                applyDebugBorder((CardPanel) cardPanel, card, true);
             } else {
                 cardPanel = new CardBackPanel();
             }
@@ -178,8 +178,8 @@ public class BattleGUI extends JPanel{
 
             // Proceed with battle directly here, without calling proceedWithBattleRound()
             BattlePanel battlePanel = new BattlePanel();
-            CardPanel playerCardPanel = new CardPanel(selectedCard);
-            CardPanel opponentCardPanel = new CardPanel(opponentSelectedCard);
+            CardPanel playerCardPanel = new CardPanel(selectedCard, battle);
+            CardPanel opponentCardPanel = new CardPanel(opponentSelectedCard, battle);
             applyDebugBorder(playerCardPanel, selectedCard, false);
             applyDebugBorder(opponentCardPanel, opponentSelectedCard, true);
             BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
@@ -377,8 +377,8 @@ public class BattleGUI extends JPanel{
         opponentSelectedCard = null;
 
         BattlePanel battlePanel = new BattlePanel();
-        CardPanel playerCardPanel = new CardPanel(playerCard);
-        CardPanel opponentCardPanel = new CardPanel(opponentCard);
+        CardPanel playerCardPanel = new CardPanel(playerCard, battle);
+        CardPanel opponentCardPanel = new CardPanel(opponentCard, battle);
         applyDebugBorder(playerCardPanel, playerCard, false);
         applyDebugBorder(opponentCardPanel, opponentCard, true);
         BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
@@ -408,14 +408,19 @@ public class BattleGUI extends JPanel{
 
         List<ICard> deck = isOpponent ? battle.getOpponentDeck() : playerDeck;
 
-        List<ICard> aliveCards = new ArrayList<>();
-        for (ICard c : deck) {
-            if (c.getHealth() > 0) {
-                aliveCards.add(c);
+        int index;
+        if (isOpponent){
+            index = opponentCardColorIndexMap.getOrDefault(card.getId(), -1);
+        } else {
+            List<ICard> aliveCards = new ArrayList<>();
+            for (ICard c : deck){
+                if (c.getHealth() > 0){
+                    aliveCards.add(c);
+                }
             }
+            index = aliveCards.indexOf(card);
         }
 
-        int index = aliveCards.indexOf(card);
         Color debugColor = switch (index) {
             case 0 -> Color.BLUE;
             case 1 -> Color.GREEN;
@@ -427,14 +432,23 @@ public class BattleGUI extends JPanel{
         panel.setBorder(BorderFactory.createLineBorder(debugColor, 5));
     }
 
-    private void setupDebugToggleKey(){
+    private void setupDebugToggleKey() {
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F3"), "toggleDebugColors");
-        getActionMap().put("toggleDebugColors", new AbstractAction(){
+        getActionMap().put("toggleDebugColors", new AbstractAction() {
             @Override
-            public void actionPerformed(ActionEvent e){
+            public void actionPerformed(ActionEvent e) {
                 debugColorsEnabled = !debugColorsEnabled;
                 System.out.println("Debug colors " + (debugColorsEnabled ? "enabled" : "disabled"));
+
                 updateOpponentDeckUI();
+                updatePlayerDeckUI();
+
+                Component center = getComponentAt(new Point(getWidth() / 2, getHeight() / 2));
+                if (center instanceof BattlePanel battlePanel) {
+                    applyDebugBorder(battlePanel.playerCardPanel, battlePanel.playerCardPanel.card, false);
+                    applyDebugBorder(battlePanel.opponentCardPanel, battlePanel.opponentCardPanel.card, true);
+                    battlePanel.repaint();
+                }
             }
         });
     }
@@ -444,9 +458,13 @@ public class BattleGUI extends JPanel{
     public class CardPanel extends JPanel {
         private final ICard card;
         private boolean showHealthBar = false;
+        private boolean isFlashing = false;
+        private Timer flashTimer;
+        private final Battle battle;
 
-        public CardPanel(ICard card) {
+        public CardPanel(ICard card, Battle battle) {
             this.card = card;
+            this.battle = battle;
             setPreferredSize(new Dimension(145, 220));
             setOpaque(false);
         }
@@ -456,11 +474,39 @@ public class BattleGUI extends JPanel{
             repaint();
         }
 
+        public void flashWhite(){
+            if (flashTimer != null && flashTimer.isRunning()){
+                flashTimer.stop();
+            }
+            isFlashing = true;
+            repaint();
+
+            flashTimer = new Timer(100, e -> {
+                isFlashing = false;
+                repaint();
+            });
+            flashTimer.setRepeats(false);
+            flashTimer.start();
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
+
+            if (isFlashing){
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
+                return;
+            }
+
             CardRenderer.renderCard(g2d, card, getWidth(), getHeight() - 20);
+
+            if (battle.isCardBurning(card)){
+                g2d.setColor(new Color(255, 140, 0, 100));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
 
             if (showHealthBar) {
                 int barHeight = 10;

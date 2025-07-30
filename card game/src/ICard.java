@@ -14,8 +14,6 @@ public interface ICard {
     String getRarity();
     List<AbilityType> getAbilities();
     void addAbility(AbilityType ability);
-    boolean isBurning();
-    void applyBurn(int turns);
     void tickBurn();
     void applyTemporaryAttackReduction(int amount, int turns);
     void tickAttackReduction();
@@ -28,5 +26,4 @@ public interface ICard {
     void resetStatus();
     void attack(ICard target, Battle battle);
     boolean hasAttackedThisTurn();
-    boolean isRevealed();
 }

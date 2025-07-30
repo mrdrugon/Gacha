@@ -1,5 +1,4 @@
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CardAbilities {
     public static void onAttack(ICard attacker, ICard defender, ICard target, AbilityType type, Battle battle) {
@@ -52,7 +51,9 @@ public class CardAbilities {
                 }
                 break;
             case SOLAR_FLARE:
-                target.applyBurn(2);
+                if (target != null && target.getHealth() > 0) {
+                    battle.applyBurn(target, 2);
+                }
              break;
             case SHADOW_SLASH:
                 if (Math.random() < 0.3){
@@ -111,8 +112,6 @@ public class CardAbilities {
             case SHIMMERING_RETALIATION:
                 applyShimmeringRetaliation(card, attacker);
                 break;
-            case PHOTOSYNYHESIS:
-                break;
         }
     }
 
@@ -121,7 +120,7 @@ public class CardAbilities {
 
         card.tickAttackReduction();
 
-        if (card.isBurning()){
+        if (battle.isCardBurning(card)){
             card.tickBurn();
         }
         switch (type){
@@ -160,29 +159,32 @@ public class CardAbilities {
                 }
                 break;
             case DUALITY:
-                if (card instanceof BasicCard basicCard){
-                    if (basicCard.getAbilities().stream().anyMatch(a -> a != AbilityType.DUALITY)) return;;
+                if (card instanceof BasicCard basicCard) {
+                    // Don't copy again if it already has something other than Duality
+                    if (basicCard.getAbilities().stream().anyMatch(a -> a != AbilityType.DUALITY)) break;
 
                     List<ICard> allDeadCards = new ArrayList<>();
-                    for (ICard c : battle.getPlayerDeck()){
+                    for (ICard c : battle.getPlayerDeck()) {
                         if (c.getHealth() <= 0) allDeadCards.add(c);
                     }
-                    for (ICard c : battle.getOpponentDeck()){
+                    for (ICard c : battle.getOpponentDeck()) {
                         if (c.getHealth() <= 0) allDeadCards.add(c);
                     }
 
                     List<AbilityType> allAbilities = new ArrayList<>();
-                    for (ICard dead : allDeadCards){
-                        for (AbilityType ab : dead.getAbilities()){
-                            if (ab != AbilityType.DUALITY){
+                    for (ICard dead : allDeadCards) {
+                        for (AbilityType ab : dead.getAbilities()) {
+                            if (ab != AbilityType.DUALITY) {
                                 allAbilities.add(ab);
                             }
                         }
                     }
 
-                    if (!allAbilities.isEmpty()){
+                    if (!allAbilities.isEmpty()) {
                         AbilityType copied = allAbilities.get((int) (Math.random() * allAbilities.size()));
                         basicCard.addAbility(copied);
+                        basicCard.markAsCopied(copied);
+                        basicCard.addPendingAbility(copied);  // Delay the add
                     }
                 }
                 break;
@@ -232,7 +234,14 @@ public class CardAbilities {
                 }
                 break;
             case HEALING_SPROUT:
-                //applyHealingSprout(card, battle);
+                if (card.getHealth() <= 0) return; // dead cards shouldn't activate
+
+                List<ICard> friendlyDeck = battle.getPlayerDeck().contains(card) ? battle.getPlayerDeck() : battle.getOpponentDeck();
+                for (ICard ally : friendlyDeck) {
+                    if (ally.getHealth() > 0 && ally != card) {
+                        ally.setHealth(ally.getHealth() + 15);
+                    }
+                }
                 break;
             case LURING_SONG:
                 ICard enemyTarget = battle.getCurrentOpponentCard();
@@ -253,12 +262,6 @@ public class CardAbilities {
                 break;
             case RADIANT_BALANCE:
                 applyRadiantBalance(card, battle);
-                break;
-            case OCEANS_PATIENCE:
-                if (!card.hasAttackedThisTurn()){
-                    card.setAttack(card.getAttack() + 2);
-                    card.setHealth(card.getHealth() + 5);
-                }
                 break;
         }
     }
@@ -307,6 +310,14 @@ public class CardAbilities {
             case HEX:
                 defender.applyHex(1);
                 break;
+            case PHOTOSYNTHESIS:
+                List<ICard> sameTeam = battle.getPlayerDeck().contains(defender) ? battle.getPlayerDeck() : battle.getOpponentDeck();
+                for (ICard c : sameTeam) {
+                    if (c != defender && c.getHealth() > 0 && c.getAbilities().contains(AbilityType.PHOTOSYNTHESIS)) {
+                        c.setHealth(c.getHealth() + 5);
+                    }
+                }
+                break;
         }
     }
 
@@ -322,22 +333,6 @@ public class CardAbilities {
         int newHealth = card.getHealth() + 5;
         card.setHealth(newHealth);
     }
-
-    /*private static void applyHealingSprout(ICard card, Battle battle){
-        int turn = battle.getTurnNumber();
-        if (turn % 2 != 0) return;
-
-        List<ICard> team = battle.isPlayerCard(card) ? battle.getPlayerDeck() : battle.getOpponentDeck();
-
-        List<ICard> healable = team.stream().filter(c -> c.getHealth() > 0 && c.getHealth() < c.getOriginalHealth()).collect(Collectors.toList());
-
-        if (healable.isEmpty()) return;
-
-        ICard target = healable.get(new Random().nextInt(healable.size()));
-        int original = target.getHealth();
-        target.setHealth(original + 15);
-    }
-    */
     private static void applySeedScatter(ICard card, Battle battle){
         if(!(card instanceof BasicCard)) return;
 

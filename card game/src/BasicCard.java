@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BasicCard implements ICard {
     private static int counter = 1;
@@ -23,6 +25,9 @@ public class BasicCard implements ICard {
     private boolean hasDodged = false;
     private boolean attackedThisTurn = false;
     private int shieldAmount = 0;
+    private final List<AbilityType> pendingAbilities = new ArrayList<>();
+    private Set<AbilityType> copiedAbilities = new HashSet<>();
+    private boolean attackedLastTurn = false;
 
     public BasicCard(String name, int attack, int health, String rarity, List<AbilityType> abilityType) {
         this.name = name;
@@ -181,15 +186,26 @@ public class BasicCard implements ICard {
                 if (aliveOthers == 0) usedWhiteStrike = true;
             }
         }
+
+        List<ICard> friendlyDeck = battle.getPlayerDeck().contains(this) ? battle.getPlayerDeck() : battle.getOpponentDeck();
+        for (ICard card : friendlyDeck){
+            if (card != this && card.getHealth() > 0 && card.getAbilities().contains(AbilityType.PHOTOSYNTHESIS)){
+                card.setHealth(card.getHealth() + 5);
+            }
+        }
     }
 
     public void startTurn(Battle battle) {
         attackedThisTurn = false;
+
+        tickBurn();
+        tickHex();
+
         ICard defender = (this == battle.selectedPlayerCard)
                 ? Battle.getCurrentOpponentCard()
                 : battle.selectedPlayerCard;
 
-        for (AbilityType type : abilities) {
+        for (AbilityType type : new ArrayList<>(abilities)) {
             CardAbilities.onTurnStart(this, defender, this, type, battle);
         }
     }
@@ -222,18 +238,9 @@ public class BasicCard implements ICard {
     }
 
     @Override
-    public boolean isBurning(){
-        return burnTurnsLeft > 0;
-    }
-
-    @Override
-    public void applyBurn(int turns){
-        burnTurnsLeft = turns;
-    }
-
-    @Override
     public void tickBurn(){
         if (burnTurnsLeft > 0){
+            System.out.println(name + " takes 3 burn damage (" + burnTurnsLeft + " turns left)");
             this.takeDamage(3);
             burnTurnsLeft--;
         }
@@ -319,11 +326,6 @@ public class BasicCard implements ICard {
         return attackedThisTurn;
     }
 
-    @Override
-    public boolean isRevealed() {
-        return false;
-    }
-
     public void applyShield(int amount){
         this.shieldAmount = Math.max(shieldAmount, amount);
     }
@@ -334,6 +336,33 @@ public class BasicCard implements ICard {
 
     public void consumeShield(){
         this.shieldAmount = 0;
+    }
+
+    public void addPendingAbility(AbilityType ability){
+        pendingAbilities.add(ability);
+    }
+
+    public void applyPendingAbilities(){
+        for (AbilityType ability : pendingAbilities){
+            addAbility(ability);
+        }
+        pendingAbilities.clear();
+    }
+
+    public void markAsCopied(AbilityType ability){
+        copiedAbilities.add(ability);
+    }
+
+    public boolean isCopiedAbility(AbilityType ability){
+        return copiedAbilities.contains(ability);
+    }
+
+    public void setAttackedLastTurn(boolean value){
+        this.attackedLastTurn = value;
+    }
+
+    public boolean didAttackLastTurn(){
+        return attackedLastTurn;
     }
 
     @Override

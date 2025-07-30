@@ -1,3 +1,4 @@
+import java.util.List;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -111,15 +112,29 @@ public class CardRenderer {
         g2d.drawString("HP: " + card.getHealth(), 10, 50);
         g2d.drawString("ATK: " + card.getAttack(), 10, 70);
 
+        List<AbilityType> abilities = card.getAbilities();
         int abilityY = 100;
-        for (AbilityType type : card.getAbilities()) {
+        boolean isDuality = abilities.contains(AbilityType.DUALITY);
+
+        for (int i = 0; i < abilities.size(); i++) {
+            AbilityType type = abilities.get(i);
+
+            String label;
+            if (isDuality && i == 0 && type == AbilityType.DUALITY) {
+                label = "ABILITY";
+            } else if (isDuality && i == 1) {
+                label = "COPIED ABILITY";
+            } else {
+                label = "ABILITY";
+            }
+
             g2d.setFont(new Font("Arial", Font.BOLD, 12));
-            g2d.drawString("ABILITY", 10, abilityY);
+            g2d.drawString(label, 10, abilityY);
             abilityY += 20;
 
             g2d.setFont(new Font("Arial", Font.PLAIN, 12));
             drawMultilineText(g2d, getAbilityDescription(type), 10, abilityY, width - 20);
-            abilityY += 40; // Adjust for multiline spacing
+            abilityY += 40;
         }
     }
 
@@ -182,21 +197,21 @@ public class CardRenderer {
             case SILVER_SHIELD:
                 return "Increases defense of a friendly card by 10.";
             case SOLAR_FLARE:
-                return "Deals damage and burns the enemy for 2 turns (deals 3 damage per turn).";
+                return "Applies fire to the enemy for 2 turns (deals 3 damage per turn).";
             case SHADOW_SLASH:
-                return "Deals damage and has a 30% chance to reduce an enemy card's attack for 1 turn.";
+                return "Has 30% chance to reduce an enemy card's attack.";
             case WHITE_STRIKE:
-                return "Deals double damage if no other friendly cards are alive.";
+                return "Deals triple damage if no other friendly cards are alive.";
             case DUALITY:
                 return "Can copy the ability of any dead card.";
             case MIND_WARP:
                 return "Reduces a random enemy card’s attack by 3.";
             case PHANTOM_STRIKE:
-                return "Has a 20% chance to stun the target for 1 turn.";
-            case PHOTOSYNYHESIS:
-                return "Restores 5 health every time a friendly card is attacked.";
+                return "Has a 20% chance to dodge and attack.";
+            case PHOTOSYNTHESIS:
+                return "Heals 5 health every time a friendly card gets hit.";
             case HEX:
-                return "Disables an enemy’s ability for 1 turn.";
+                return "Disables an enemy’s ability when it attack this card.";
             case SPREADING_ROOTS:
                 return "Heals all friendly cards by 3 every 2 turns.";
             case SOOTHING_BLOOM:
@@ -204,7 +219,7 @@ public class CardRenderer {
             case SEED_SCATTER:
                 return "On death, summons a 5-health “Dandelion Puff” with 1 attack.";
             case HEALING_SPROUT:
-                return "Heals a friendly card for 15 health every 2 turns.";
+                return "Heals all friendly cards for 15 health.";
             case WILD_ROAR:
                 return "Deals 5 damage to all enemy cards and heals itself by 5.";
             case TIDE_TURN:
