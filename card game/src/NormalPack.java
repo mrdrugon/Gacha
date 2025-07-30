@@ -8,7 +8,7 @@ final class NormalPack implements Pack {
             new BasicCard("Yellow Avenger", 8, 30, "Common", Collections.singletonList(AbilityType.LIGHTNING_CHARGE)),
             new BasicCard("Blue Ice Warden", 5, 40, "Common", Collections.singletonList(AbilityType.FROSTBITE)),
             new BasicCard("Verdant Guardian", 6, 50, "Common", Collections.singletonList(AbilityType.THORN_ARMOR)),
-            new BasicCard("Volcanic Golem", 10, 75, "Common", Collections.singletonList(AbilityType.LAVA_SURGE)),
+            new BasicCard("Volcanic Golem", 10, 30, "Common", Collections.singletonList(AbilityType.LAVA_SURGE)),
             new BasicCard("Golden Warrior", 8, 30, "Common", Collections.singletonList(AbilityType.SUNSTRIKE)),
             new BasicCard("Silver Sentinel", 8, 30, "Common", Collections.singletonList(AbilityType.SILVER_SHIELD)),
             new BasicCard("Luminous Priest", 8, 30, "Common", Collections.singletonList(AbilityType.SOLAR_FLARE)),
