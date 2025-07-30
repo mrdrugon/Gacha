@@ -19,7 +19,6 @@ final class NormalPack implements Pack {
             new BasicCard("Emerald Sorceress", 8, 30, "Common", Collections.singletonList(AbilityType.GEM_SHIELD)),
             new BasicCard("Amethyst Phantom", 8, 30, "Common", Collections.singletonList(AbilityType.SHADOW_DRAIN)),
             new BasicCard("Obsidian Wraith", 8, 30, "Common", Collections.singletonList(AbilityType.VOLCANIC_CORE)),
-            new BasicCard("Dandelion Puff", 1, 50, "Common", null)
     };
 
     private static final BasicCard[] UNCOMMON_CARDS = {
@@ -46,7 +45,6 @@ final class NormalPack implements Pack {
             new BasicCard("Tempest Serpent", 10, 65, "Rare", Collections.singletonList(AbilityType.CYCLONE_FURY)),
             new BasicCard("Amber Phoenix", 9, 50, "Rare", Collections.singletonList(AbilityType.ASHEN_WINGS)),
             new BasicCard("Copper Golem", 8, 30, "Rare", Collections.singletonList(AbilityType.RUST_RESISTANCE)),
-            new BasicCard("Sea Turtle Sentinel", 8, 30, "Rare", Collections.singletonList(AbilityType.OCEANS_PATIENCE)),
             new BasicCard("Kraken's Tentacle", 8, 30, "Rare", Collections.singletonList(AbilityType.ENTANGLE)),
             new BasicCard("Forest Spirit", 8, 30, "Rare", Collections.singletonList(AbilityType.PHOTOSYNTHESIS))
     };
