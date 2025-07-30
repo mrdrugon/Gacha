@@ -235,7 +235,7 @@ public class CardAbilities {
                 //applyHealingSprout(card, battle);
                 break;
             case LURING_SONG:
-                ICard enemyTarget = battle.getNextOpponentCard();
+                ICard enemyTarget = battle.getCurrentOpponentCard();
                 if (enemyTarget != null){
                     if (enemyTarget instanceof  BasicCard){
                         ((BasicCard) enemyTarget).setLuringTarget(true);

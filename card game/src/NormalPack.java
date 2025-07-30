@@ -19,7 +19,7 @@ final class NormalPack implements Pack {
             new BasicCard("Emerald Sorceress", 8, 30, "Common", Collections.singletonList(AbilityType.GEM_SHIELD)),
             new BasicCard("Amethyst Phantom", 8, 30, "Common", Collections.singletonList(AbilityType.SHADOW_DRAIN)),
             new BasicCard("Obsidian Wraith", 8, 30, "Common", Collections.singletonList(AbilityType.VOLCANIC_CORE)),
-            new BasicCard("Dandelion Puff", 1, 5, "Common", null)
+            new BasicCard("Dandelion Puff", 1, 50, "Common", null)
     };
 
     private static final BasicCard[] UNCOMMON_CARDS = {

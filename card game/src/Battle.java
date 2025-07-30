@@ -1,4 +1,6 @@
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class Battle {
     public Random random;
@@ -20,6 +22,7 @@ public class Battle {
     public ICard selectedPlayerCard;
     private final Set<ICard> revealedOpponentCards = new HashSet<>();
     private boolean isSecondAttack = false;
+    private ICard cachedOpponentCard;
 
     public Battle(List<ICard> playerDeck, List<ICard> opponentDeck) {
         this.playerDeck = playerDeck;
@@ -50,6 +53,7 @@ public class Battle {
 
     public boolean playerSelectedCard(ICard selectedCard) {
         ICard cardToSelect = playerCardsMap.get(selectedCard.getId());
+
         if (cardToSelect != null && cardToSelect.getHealth() > 0) {
             selectedPlayerCard = cardToSelect;
             return true;
@@ -62,19 +66,18 @@ public class Battle {
 
         if (selectedPlayerCard.isStunned()) {
             selectedPlayerCard.setStunned(false);
-            return false; // ← You need to return a boolean since playNextRound() returns boolean
+            return false;
         }
 
         if (isOpponentDefeated()) return true;
 
-        ICard opponentCard = getNextOpponentCard();
-        revealedOpponentCards.add(opponentCard);
+        // Pick and store the opponent card ONCE for this turn
+        currentOpponentCard = getNextOpponentCard();
+        ICard opponentCard = consumeOpponentCard();
+
         if (opponentCard == null) return true;
 
-        // Set current opponent for reference
-        currentOpponentCard = opponentCard;
-
-        // Trigger turn start effects
+        // Trigger start-of-turn effects
         if (selectedPlayerCard instanceof BasicCard) {
             ((BasicCard) selectedPlayerCard).startTurn(this);
         }
@@ -82,7 +85,7 @@ public class Battle {
             ((BasicCard) opponentCard).startTurn(this);
         }
 
-
+        // Player attacks first
         if (!isFrozen(selectedPlayerCard)) {
             if (selectedPlayerCard instanceof BasicCard) {
                 ((BasicCard) selectedPlayerCard).attack(opponentCard, this);
@@ -91,7 +94,7 @@ public class Battle {
             }
         }
 
-        // Opponent attacks player (if still alive)
+        // Opponent attacks if still alive
         if (opponentCard.getHealth() > 0 && !isFrozen(opponentCard)) {
             if (opponentCard instanceof BasicCard) {
                 ((BasicCard) opponentCard).attack(selectedPlayerCard, this);
@@ -100,7 +103,7 @@ public class Battle {
             }
         }
 
-        // Trigger end-of-turn effects
+        // End-of-turn effects
         if (selectedPlayerCard instanceof BasicCard) {
             ((BasicCard) selectedPlayerCard).endTurn(this);
         }
@@ -108,6 +111,7 @@ public class Battle {
             ((BasicCard) opponentCard).endTurn(this);
         }
 
+        // Death abilities
         if (selectedPlayerCard.getHealth() <= 0) {
             for (AbilityType type : selectedPlayerCard.getAbilities()) {
                 CardAbilities.onDeath(selectedPlayerCard, opponentCard, selectedPlayerCard, opponentCard, type, this);
@@ -127,8 +131,7 @@ public class Battle {
         decrementBurningCards();
         tickGaleForceDebuff();
 
-        // Return true if there are no opponent cards left.
-        return opponentIndex >= opponentDeck.size();
+        return isOpponentDefeated(); // return true if battle is over
     }
 
     public void applyGaleForceDebuff(ICard target) {
@@ -305,14 +308,47 @@ public class Battle {
                 aliveOpponents.add(card);
             }
         }
+        if (aliveOpponents.isEmpty()) {
+            return null;
+        }
+        return aliveOpponents.get(random.nextInt(aliveOpponents.size()));
+    }
 
-        if (aliveOpponents.isEmpty()) return null;
+    public ICard selectNextOpponentCard(){
+        if(cachedOpponentCard == null || cachedOpponentCard.getHealth() <= 0){
+            List<ICard> aliveCards = getAliveCards(opponentDeck);
+            if (!aliveCards.isEmpty()){
+                cachedOpponentCard = aliveCards.get(new Random().nextInt(aliveCards.size()));
+            }
+        }
+        revealOpponentCard(cachedOpponentCard);
+        return cachedOpponentCard;
+    }
 
-        Random rand = new Random();
-        return aliveOpponents.get(rand.nextInt(aliveOpponents.size()));
+    public ICard consumeOpponentCard(){
+        ICard selected = cachedOpponentCard;
+        cachedOpponentCard = null;
+        return selected;
+    }
+
+    private List<ICard> getAliveCards(List<ICard> deck){
+        List<ICard> aliveCards = new ArrayList<>();
+        for (ICard card : deck){
+            if (card.getHealth() > 0){
+                aliveCards.add(card);
+            }
+        }
+        return aliveCards;
+    }
+
+    public void revealOpponentCard(ICard card){
+        if (card != null){
+            revealedOpponentCards.add(card);
+        }
     }
 
     public Set<ICard> getRevealedOpponentCards() {
         return revealedOpponentCards;
     }
+
 }

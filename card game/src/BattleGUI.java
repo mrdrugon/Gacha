@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class BattleGUI extends JPanel{
     private ICard opponentSelectedCard;
     private ICard localSelectedCard;
     private boolean isMultiplayer;
+    private boolean debugColorsEnabled = false;
 
     public BattleGUI(List<ICard> playerDeck, List<ICard> enemyDeck, Main main, BattleTowerManager towerManager, MainMenuGUI mainMenuGUI) {
         this.main = main;
@@ -29,14 +31,17 @@ public class BattleGUI extends JPanel{
         this.isMultiplayer = main.getGameMode() != Main.GameMode.SINGLEPLAYER;
         this.networkManager = main.getNetworkManager();
         main.setMultiplayerBattleGUI(this);
+        setupDebugToggleKey();
 
         if (isMultiplayer && networkManager != null) {
             networkManager.onReceive(message -> {
                 if (message.startsWith("PLAY_CARD:")) {
                     int cardId = Integer.parseInt(message.split(":")[1]);
                     ICard card = findCardInOpponentDeckById(cardId);
-                    opponentSelectedCard = card;
-                    SwingUtilities.invokeLater(this::tryStartMultiplayerBattle);
+                    SwingUtilities.invokeLater(() -> {
+                        opponentSelectedCard = card;
+                        tryStartMultiplayerBattle(); // only after it's fully set
+                    });
                 }
             });
         }
@@ -127,9 +132,25 @@ public class BattleGUI extends JPanel{
             JPanel cardPanel; // ✅ Use JPanel instead of CardPanel
 
             if (revealed.contains(card)) {
-                cardPanel = new CardPanel(card); // Show actual card
+                // Always create a fresh panel to reflect updated state
+                cardPanel = new CardPanel(card);
+                cardPanel.repaint();// 💥 Force UI to redraw health bar
+
+                if (debugColorsEnabled) {
+                    Color debugColor = switch (i){
+                        case 0 -> Color.BLUE;
+                        case 1 -> Color.GREEN;
+                        case 2 -> Color.RED;
+                        case 3 -> Color.YELLOW;
+                        case 4 -> Color.MAGENTA;
+                        default -> Color.GRAY;
+                    };
+                    cardPanel.setBorder(BorderFactory.createLineBorder(debugColor, 5));
             } else {
-                cardPanel = new CardBackPanel(); // Show card back
+                    cardPanel.setBorder(null);
+                }
+            } else {
+                cardPanel = new CardBackPanel();
             }
 
             cardPanel.setBounds(startX + i * xOffset, 0, cardWidth, cardHeight);
@@ -152,13 +173,21 @@ public class BattleGUI extends JPanel{
             networkManager.send("PLAY_CARD:" + selectedCard.getId());
             tryStartMultiplayerBattle();
         } else {
-            opponentSelectedCard = battle.getNextOpponentCard();
+            opponentSelectedCard = battle.selectNextOpponentCard();
+            battle.revealOpponentCard(opponentSelectedCard);
 
             // Proceed with battle directly here, without calling proceedWithBattleRound()
             BattlePanel battlePanel = new BattlePanel();
             CardPanel playerCardPanel = new CardPanel(selectedCard);
             CardPanel opponentCardPanel = new CardPanel(opponentSelectedCard);
+            applyDebugBorder(playerCardPanel, selectedCard, false);
+            applyDebugBorder(opponentCardPanel, opponentSelectedCard, true);
             BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
+
+            Component center = getComponentAt(new Point(getWidth() / 2, getHeight() / 2));
+            if (center instanceof BattlePanel) {
+                remove(center);
+            }
 
             add(battlePanel, BorderLayout.CENTER);
             revalidate();
@@ -269,13 +298,18 @@ public class BattleGUI extends JPanel{
         playerMoveBackTimer.setInitialDelay(animationDuration * 2);
         playerMoveBackTimer.start();
 
-        // Final timer: hide cards and complete the animation.
         Timer hideCards = new Timer(1500, e -> {
             playerCard.setVisible(false);
             opponentCard.setVisible(false);
             parent.revalidate();
             parent.repaint();
-            onComplete.run();
+
+            // Run update after Swing has had time to repaint everything
+            Timer delayedUpdate = new Timer(100, ev -> {
+                onComplete.run();
+            });
+            delayedUpdate.setRepeats(false);
+            delayedUpdate.start();
         });
         hideCards.setRepeats(false);
         hideCards.setInitialDelay(1500);
@@ -321,6 +355,91 @@ public class BattleGUI extends JPanel{
         }
     }
 
+    private ICard findCardInOpponentDeckById(int id){
+        for (ICard card : battle.getOpponentDeck()){
+            if (card.getId() == id) return card;
+        }
+        return null;
+    }
+
+    private void tryStartMultiplayerBattle(){
+        if (localSelectedCard != null && opponentSelectedCard != null){
+            proceedWithBattleRound();
+        }
+    }
+
+    private void proceedWithBattleRound(){
+        ICard playerCard = localSelectedCard;
+        ICard opponentCard = opponentSelectedCard;
+        battle.revealOpponentCard(opponentCard);
+
+        localSelectedCard = null;
+        opponentSelectedCard = null;
+
+        BattlePanel battlePanel = new BattlePanel();
+        CardPanel playerCardPanel = new CardPanel(playerCard);
+        CardPanel opponentCardPanel = new CardPanel(opponentCard);
+        applyDebugBorder(playerCardPanel, playerCard, false);
+        applyDebugBorder(opponentCardPanel, opponentCard, true);
+        BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
+
+        add(battlePanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+
+        SwingUtilities.invokeLater(() ->{
+            animateBattle(playerCardPanel, opponentCardPanel, () ->{
+                updatePlayerDeckUI();
+                updateOpponentDeckUI();
+                checkForBattleEnd();
+                isTurnActive = true;
+            });
+        });
+    }
+
+    public void onOpponentCardPlayed(int cardId){
+        ICard opponentCard = findCardInOpponentDeckById(cardId);
+        this.opponentSelectedCard = opponentCard;
+        tryStartMultiplayerBattle();
+    }
+
+    private void applyDebugBorder(CardPanel panel, ICard card, boolean isOpponent) {
+        if (!debugColorsEnabled) return;
+
+        List<ICard> deck = isOpponent ? battle.getOpponentDeck() : playerDeck;
+
+        List<ICard> aliveCards = new ArrayList<>();
+        for (ICard c : deck) {
+            if (c.getHealth() > 0) {
+                aliveCards.add(c);
+            }
+        }
+
+        int index = aliveCards.indexOf(card);
+        Color debugColor = switch (index) {
+            case 0 -> Color.BLUE;
+            case 1 -> Color.GREEN;
+            case 2 -> Color.RED;
+            case 3 -> Color.YELLOW;
+            case 4 -> Color.MAGENTA;
+            default -> Color.GRAY;
+        };
+        panel.setBorder(BorderFactory.createLineBorder(debugColor, 5));
+    }
+
+    private void setupDebugToggleKey(){
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F3"), "toggleDebugColors");
+        getActionMap().put("toggleDebugColors", new AbstractAction(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                debugColorsEnabled = !debugColorsEnabled;
+                System.out.println("Debug colors " + (debugColorsEnabled ? "enabled" : "disabled"));
+                updateOpponentDeckUI();
+            }
+        });
+    }
+
+
     // Custom JPanel to render a card.
     public class CardPanel extends JPanel {
         private final ICard card;
@@ -358,50 +477,7 @@ public class BattleGUI extends JPanel{
         }
     }
 
-    private ICard findCardInOpponentDeckById(int id){
-        for (ICard card : battle.getOpponentDeck()){
-            if (card.getId() == id) return card;
-        }
-        return null;
-    }
 
-    private void tryStartMultiplayerBattle(){
-        if (localSelectedCard != null && opponentSelectedCard != null){
-            proceedWithBattleRound();
-        }
-    }
-
-    private void proceedWithBattleRound(){
-        ICard playerCard = localSelectedCard;
-        ICard opponentCard = opponentSelectedCard;
-
-        localSelectedCard = null;
-        opponentSelectedCard = null;
-
-        BattlePanel battlePanel = new BattlePanel();
-        CardPanel playerCardPanel = new CardPanel(playerCard);
-        CardPanel opponentCardPanel = new CardPanel(opponentCard);
-        BattlePanel.setCards(battlePanel, playerCardPanel, opponentCardPanel);
-
-        add(battlePanel, BorderLayout.CENTER);
-        revalidate();
-        repaint();
-
-        SwingUtilities.invokeLater(() ->{
-            animateBattle(playerCardPanel, opponentCardPanel, () ->{
-                updatePlayerDeckUI();
-                updateOpponentDeckUI();
-                checkForBattleEnd();
-                isTurnActive = true;
-            });
-        });
-    }
-
-    public void onOpponentCardPlayed(int cardId){
-        ICard opponentCard = findCardInOpponentDeckById(cardId);
-        this.opponentSelectedCard = opponentCard;
-        tryStartMultiplayerBattle();
-    }
 
     // Panel used during a battle round to display both cards.
     public class BattlePanel extends JPanel {

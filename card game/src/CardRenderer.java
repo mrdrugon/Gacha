@@ -94,7 +94,7 @@ public class CardRenderer {
 
         // Set text properties
 
-        if (card.getName() == "Nightmare Specter" || card.getName() == "Obsidian Wraith" || card.getName() == "Void Mage" || card.getName() == "Kraken's Tentacle" || card.getName() == "Shadow Phantom" || card.getName() == "Onyx Oracle" || card.getName() == "Azure Guardian"){
+        if (card.getName() == "Nightmare Specter" || card.getName() == "Obsidian Wraith" || card.getName() == "Void Mage" || card.getName() == "Kraken's Tentacle" || card.getName() == "Shadow Phantom" || card.getName() == "Onyx Oracle" || card.getName() == "Azure Guardian" || card.getName() == "Forest Spirit"){
             g2d.setColor(Color.WHITE);
         } else {
             g2d.setColor(Color.BLACK);

@@ -54,11 +54,11 @@ public class ShopPanel extends JPanel {
         add(buyTenButton);
 
         buyTenButton.addActionListener(e -> {
-            if (main.getTowerManager().getCurrentPoints() >= 100) {
-                main.getTowerManager().spendPoints(100);
+            if (main.getTowerManager().getCurrentPoints() >= 0) {
+                main.getTowerManager().spendPoints(0);
                 updatePoints();
 
-                main.openPack(PackType.NORMAL, 10); // ✅ fixed
+                main.openPack(PackType.NORMAL, 100); // ✅ fixed
             }
         });
     }
