@@ -1,6 +1,3 @@
-// File: NormalPack.java
-// (no package statement; place alongside your other source files)
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,13 +7,12 @@ public final class NormalPack implements Pack {
     private static final Random rand = new Random();
     private static final int PACK_SIZE = 5;
 
-    // Load once at class initialization from cards.csv on the classpath:
     private static final List<ICard> COMMON_CARDS;
     static {
         try {
-            COMMON_CARDS = CardLoader.loadFromResource("/resources/cards.csv");
+            COMMON_CARDS = CardLoader.loadFromResource("/cards.csv");
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load cards.csv from classpath", e);
+            throw new RuntimeException("Failed to load cards.csv", e);
         }
     }
 

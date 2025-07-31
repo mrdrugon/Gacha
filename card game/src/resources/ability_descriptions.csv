@@ -1,0 +1,47 @@
+# ability,description
+FROSTBITE,Reduces enemy card’s attack by 2.
+LIGHTNING_CHARGE,Gains +5 ATK after taking damage.
+THORN_ARMOR,Reflects 25% of the damage back to the attacker.
+FLAME_FURY,Deals double damage when below 30% health.
+FIRE_REBIRTH,Revives with 50% health after being destroyed once.
+OCEANS_GRASP,Freezes an enemy card for 1 turn.
+BURNING_CLAWS,Deals an additional 3 fire damage for 3 turns after attacking.
+RADIANT_BALANCE,Heals itself for 5 health and deals 5 damage at the end of each turn.
+MOLTEN_CORE,On death, explodes and deals 15 damage to the card that killed it.
+RAINBOW_PULSE,Deals 5 damage to all enemies and heals all allies for 5.
+LAVA_SURGE,Deals 10 damage to all enemy cards, but the golem takes 5 damage each turn after use.
+ASHEN_WINGS,When this card is destroyed, it deals 10 damage to all enemy cards.
+GLACIAL_SHIELD,Reduces incoming damage by 50%.
+RADIANT_LIGHT,Heals all friendly cards for 10 health every 3 turns.
+CYCLONE_FURY,Deals 10 damage to a random enemy every 2 turns.
+GALE_FORCE,Reduces the enemy’s attack by 4 for 2 turns after attacking.
+ETERNAL_FLAME,When destroyed, it revives with full health and gains +5 attack.
+FIRESTORM,Deals 10 damage to all enemy cards.
+WATER_SHIELD,Reduces incoming damage by 5 and heals for 5 every turn.
+GEM_SHIELD,Reduces incoming damage by 20%.
+SHADOW_DRAIN,Steals 5 attack from the opponent card it hits (once per match).
+SHIMMERING_RETALIATION,When hit, deals 5 damage back and gains +2 defense.
+VOLCANIC_CORE,Deals 10 damage to both itself and the enemy on attack.
+DARK_VISION,Reveals a random card in the opponent's hand and weakens it by 3 attack.
+SUNSTRIKE,Deals extra damage if the opponent has a higher attack than this card.
+METAL_SLUSH,Has a 50% chance to attack twice in a turn.
+SILVER_SHIELD,Increases defense of a friendly card by 10.
+SOLAR_FLARE,Applies fire to the enemy for 2 turns (deals 3 damage per turn).
+SHADOW_SLASH,Has 30% chance to reduce an enemy card's attack.
+WHITE_STRIKE,Deals triple damage if no other friendly cards are alive.
+DUALITY,Can copy the ability of any dead card.
+MIND_WARP,Reduces a random enemy card’s attack by 3.
+PHANTOM_STRIKE,Has a 20% chance to dodge and attack.
+PHOTOSYNTHESIS,Heals 5 health every time a friendly card gets hit.
+HEX,Disables an enemy’s ability when it attack this card.
+SPREADING_ROOTS,Heals all friendly cards by 3 every 2 turns.
+SOOTHING_BLOOM,Heals 8 health to a random friendly card every 2 turns.
+SEED_SCATTER,On death, summons a 5-health “Dandelion Puff” with 1 attack.
+HEALING_SPROUT,Heals all friendly cards for 15 health.
+WILD_ROAR,Deals 5 damage to all enemy cards and heals itself by 5.
+TIDE_TURN,If this card kills a card, it gains +10 health.
+LURING_SONG,Forces an enemy card to attack it next turn.
+DEEP_SLIP,Dodges the first attack made against it.
+OCEANS_PATIENCE,Gains +2 attack and +5 health every turn it doesn’t attack.
+ENTANGLE,Reduces enemy’s attack by 4.
+PROTECTIVE_GLEAM,On summon, shields the lowest-health friendly card for 15 damage.

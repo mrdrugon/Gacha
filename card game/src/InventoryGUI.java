@@ -1,3 +1,6 @@
+// File: InventoryGUI.java
+// (default package; place alongside other GUI classes)
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -16,7 +19,6 @@ public class InventoryGUI {
     private JWindow previewWindow;
     private Main main;
 
-
     // UI helper fields
     private Map<Integer, JButton> cardButtonsMap = new HashMap<>();
     private Set<Integer> deadCardsIds = new HashSet<>();
@@ -28,16 +30,15 @@ public class InventoryGUI {
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.setOpaque(false);
 
-        // Load back button image
-        ImageIcon backIcon = new ImageIcon(getClass().getClassLoader().getResource("card_game/cards/Battle.png")); // Make sure the path is correct
+        ImageIcon backIcon = new ImageIcon(
+                getClass().getClassLoader().getResource("card_game/cards/Battle.png")
+        );
         JButton backButton = new JButton(backIcon);
-        backButton.setPreferredSize(new Dimension(50, 50)); // Adjust size to fit your image
+        backButton.setPreferredSize(new Dimension(50, 50));
         backButton.setContentAreaFilled(false);
         backButton.setBorderPainted(false);
         backButton.setFocusPainted(false);
         backButton.setToolTipText("Back to Main Menu");
-
-        // Add listener to go back
         backButton.addActionListener(e -> main.openMainMenu());
 
         topPanel.add(backButton);
@@ -53,15 +54,15 @@ public class InventoryGUI {
     private void initUI() {
         rootPanel = new JPanel(new BorderLayout());
 
-        // ─── TOP PANEL (Back Button + Deck Panel) ─────────────────────────────
+        // Top: back button + deck panel
         JPanel verticalBox = new JPanel();
         verticalBox.setLayout(new BoxLayout(verticalBox, BoxLayout.Y_AXIS));
 
-        // Back button
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.setOpaque(false);
-
-        ImageIcon backIcon = new ImageIcon(getClass().getClassLoader().getResource("card_game/cards/Battle.png")); // use a dedicated back icon later
+        ImageIcon backIcon = new ImageIcon(
+                getClass().getClassLoader().getResource("card_game/cards/Battle.png")
+        );
         JButton backButton = new JButton(backIcon);
         backButton.setPreferredSize(new Dimension(50, 50));
         backButton.setContentAreaFilled(false);
@@ -69,17 +70,15 @@ public class InventoryGUI {
         backButton.setFocusPainted(false);
         backButton.setToolTipText("Back to Main Menu");
         backButton.addActionListener(e -> main.openMainMenu());
-
         topPanel.add(backButton);
         verticalBox.add(topPanel);
 
-        // Deck display (stays under the back button)
         deckPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         verticalBox.add(deckPanel);
 
         rootPanel.add(verticalBox, BorderLayout.NORTH);
 
-        // ─── INVENTORY PANEL ─────────────────────────────
+        // Inventory grid
         inventoryPanel = new JPanel(new GridBagLayout());
         inventoryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JScrollPane scrollPane = new JScrollPane(inventoryPanel);
@@ -100,8 +99,8 @@ public class InventoryGUI {
             cardButton.setOpaque(true);
             cardButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
-            // Set color using renderer
-            cardButton.setBackground(CardRenderer.getCardColor(card));
+            // Use card's own theme color
+            cardButton.setBackground(card.getColor());
 
             if (card.getHealth() <= 0) {
                 deadCardsIds.add(cardId);
@@ -116,7 +115,7 @@ public class InventoryGUI {
             filled++;
         }
 
-        // Fill remaining slots with empty black squares
+        // Fill remaining slots
         for (int i = filled; i < DECK_SIZE; i++) {
             JPanel emptySlot = new JPanel();
             emptySlot.setPreferredSize(new Dimension(80, 80));
@@ -132,10 +131,10 @@ public class InventoryGUI {
     private void updateInventoryDisplay() {
         hidePreview();
         inventoryPanel.removeAll();
+
         Map<String, Integer> groupedCounts = new HashMap<>();
         Map<String, ICard> cardReference = new HashMap<>();
 
-        // 🔥 Populate the groupedCounts and cardReference maps
         for (ICard card : inventory.getCards()) {
             String name = card.getName();
             groupedCounts.put(name, groupedCounts.getOrDefault(name, 0) + 1);
@@ -143,37 +142,32 @@ public class InventoryGUI {
         }
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // Margin between cards
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
 
-        int x = 0;
-        int y = 0;
-
+        int x = 0, y = 0;
         for (Map.Entry<String, Integer> entry : groupedCounts.entrySet()) {
             String cardName = entry.getKey();
             int count = entry.getValue();
             ICard card = cardReference.get(cardName);
 
             JButton cardPanel = new CardPanel(card, count);
-
-            gbc.gridx = x;
-            gbc.gridy = y;
+            gbc.gridx = x; gbc.gridy = y;
             inventoryPanel.add(cardPanel, gbc);
 
             x++;
-            if (x >= 5) { // 5 cards per row
+            if (x >= 5) {
                 x = 0;
                 y++;
             }
         }
+
         inventoryPanel.revalidate();
         inventoryPanel.repaint();
     }
 
     private void addToDeck(ICard card) {
-        if (inventory.getDeck().isFull()) {
-            return;
-        }
+        if (inventory.getDeck().isFull()) return;
         if (inventory.addCardToDeck(card)) {
             updateDeckDisplay();
             updateInventoryDisplay();
@@ -187,40 +181,18 @@ public class InventoryGUI {
         }
     }
 
-    private void upgradeCard(ICard card) {
-        int count = 0;
-        for (ICard c : inventory.getCards()) {
-            if (c.getName().equals(card.getName())) {
-                count++;
-            }
-        }
-        if (count < UPGRADE_THRESHOLD) {
-            return;
-        }
-        for (int i = 0; i < UPGRADE_THRESHOLD; i++) {
-            inventory.removeOneCard(card);
-        }
-        // Create an upgraded card.
-        // For rarity, we assume ICard has a getRarity() method; if not, we can cast to BasicCard.
-        /*String rarity = (card instanceof BasicCard) ? ((BasicCard) card).getRarity() : "Common";
-        ICard upgradedCard = new BasicCard(card.getName() + " +1", card.getAttack() + 1, card.getHealth() + 1, rarity, card);
-        inventory.addCards(Arrays.asList(upgradedCard));
-        updateInventoryDisplay();
-         */
-    }
-
     private void showPreview(ICard card, Point screenPos) {
         if (previewWindow != null) previewWindow.dispose();
 
         previewWindow = new JWindow();
-        previewWindow.setBackground(new Color(0, 0, 0, 0)); // Transparent background
+        previewWindow.setBackground(new Color(0, 0, 0, 0));
 
         JPanel previewPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
-                CardRenderer.renderCard(g2d, card, 200, 240); // Size can be adjusted
+                CardRenderer.renderCard(g2d, card, 200, 240);
                 g2d.dispose();
             }
         };
@@ -246,30 +218,31 @@ public class InventoryGUI {
     }
 
     private class CardPanel extends JButton {
-        private ICard card;
-        private int count;
+        private final ICard card;
+        private final int count;
 
         public CardPanel(ICard card, int count) {
             this.card = card;
             this.count = count;
-            setPreferredSize(new Dimension(80, 80)); // Cube shape
-            setBackground(CardRenderer.getCardColor(card)); // Use renderer-defined color
-            setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+            setPreferredSize(new Dimension(80, 80));
             setOpaque(true);
+            setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+            // Use card.getColor() instead of CardRenderer.getCardColor
+            setBackground(card.getColor());
             setFocusPainted(false);
             setContentAreaFilled(true);
-            setToolTipText(null); // Use custom preview instead
 
             addActionListener(e -> {
-                hidePreview(); // <- hide the preview first
+                hidePreview();
                 addToDeck(card);
             });
-
             addMouseListener(new MouseAdapter() {
+                @Override
                 public void mouseEntered(MouseEvent e) {
                     showPreview(card, getLocationOnScreen());
                 }
-
+                @Override
                 public void mouseExited(MouseEvent e) {
                     hidePreview();
                 }
@@ -279,16 +252,14 @@ public class InventoryGUI {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g.create();
 
-            // Draw count (x3, etc.)
             String countText = "x" + count;
+            Graphics2D g2d = (Graphics2D) g.create();
             g2d.setColor(Color.BLACK);
             g2d.setFont(new Font("Arial", Font.BOLD, 14));
             FontMetrics fm = g2d.getFontMetrics();
             int textWidth = fm.stringWidth(countText);
             g2d.drawString(countText, getWidth() - textWidth - 4, getHeight() - 4);
-
             g2d.dispose();
         }
     }

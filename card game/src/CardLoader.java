@@ -1,6 +1,4 @@
-// File: CardLoader.java
-// (no package statement; place alongside ICard.java, BasicCard.java, etc.)
-
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,8 +10,9 @@ import java.util.List;
 public class CardLoader {
 
     /**
-     * Load cards.csv from the classpath (resources folder).
-     * @param resourcePath e.g. "/cards.csv"
+     * Loads cards.csv with columns:
+     *   name,attack,health,rarity,abilities,color
+     * where abilities are semicolon-delimited and color is a hex string (e.g. "#FF8559").
      */
     public static List<ICard> loadFromResource(String resourcePath) throws IOException {
         InputStream in = CardLoader.class.getResourceAsStream(resourcePath);
@@ -27,20 +26,18 @@ public class CardLoader {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-                // skip blank lines or comments
                 if (line.isEmpty() || line.startsWith("#")) continue;
 
                 String[] cols = line.split(",", -1);
-                if (cols.length < 5) {
-                    throw new IOException("Malformed line in cards.csv: " + line);
+                if (cols.length < 6) {
+                    throw new IOException("Malformed line: " + line);
                 }
 
                 String name   = cols[0].trim();
-                int    attack = Integer.parseInt(cols[1].trim());
-                int    health = Integer.parseInt(cols[2].trim());
+                int    atk    = Integer.parseInt(cols[1].trim());
+                int    hp     = Integer.parseInt(cols[2].trim());
                 String rarity = cols[3].trim();
 
-                // abilities are semicolon‐delimited
                 List<AbilityType> abilities = new ArrayList<>();
                 for (String tok : cols[4].split(";", -1)) {
                     tok = tok.trim();
@@ -49,7 +46,9 @@ public class CardLoader {
                     }
                 }
 
-                cards.add(new BasicCard(name, attack, health, rarity, abilities));
+                Color color = Color.decode(cols[5].trim());
+
+                cards.add(new BasicCard(name, atk, hp, rarity, abilities, color));
             }
         }
         return cards;
